@@ -17,15 +17,15 @@
                 概要图 | 漫游器
 
 4. 哪些功能?
-    1. 图表绘制
-    2. 漫游器 控制左右和 缩放比例
-    3. 节点事件 (hover  | click)
-    4. 标识节点中特殊事件 
+    1.  图表绘制
+    2.  漫游器 控制左右和 缩放比例
+    3.  节点事件 (hover  | click)
+    4.  标识节点中特殊事件 
 5. 如何实现
 
-    1. Title
+    1.  Title
         正常的 DOM 节点,固定的高度
-    2. Y 轴
+    2.  Y 轴
         展现任务名
         1. 特殊点:
             1. 固定位置, 不会随图表的左右滑动而改变自己的位置
@@ -62,8 +62,8 @@
                 );
                 };
             ```
-    3. X 轴 (时间轴)
-        > TODO: 发散思维, 提取共同点
+    3.  X 轴 (时间轴)
+        > 发散思维, 提取共同点 (见: 编码实现)
         1.  时间轴,  将 24 小时展现为 48列 小rect & 任务数列
             <rect x="" y="" width={rectWidth} height={rectHeight} />
         2.  ~~~每半个小时区间内~~~ 任务起止点精确到秒    
@@ -155,4 +155,67 @@
               }
               ```
               ~~~渲染两个 X 轴到 refs 中,在使用的时候通过 `use` 的 `width` 和 `height` 控制视口的大小~~~
+              
               根据 `readOnly` 属性值 在 calc 时 改变 `SVG` 图形的 高度 从而改变整个 svg 的高度
+
+# 编码阶段
+1. 如何使用 
+    ```javascript
+    <Gantt 
+      {...props}
+    />
+    ```
+2.  思考可能的需求
+    > 在实现之前, 尽可能多的思考会有的需求, 努力去避免后期沦入 `添加功能 -> 引起BUG -> 修复BUG `的境地.
+     但同时要小心不要将**额外**的功能点考虑进来, 确保组件功能的`SOLID`
+    
+    1.  展示型组件, 不考虑修改 `data`. 而是由事件将数据传出    
+    2.  每一个任务在由一个 `g` 包裹, 可以由用户添加自定义的 `props`, 比如 `onClick`, `className`
+    3.  任务在某个时间点发生了 特殊事件 , 该 `Point` 可以被点击和 `hover` .  `highlightPoints`中可以为其添加多种 `props`
+    4.  如果 等待时间 和 task 都需要一个 `hover` 组件, 这个组件需要是可替换的
+    5.  waiting | usedTime | avarageValue, 颜色 | 内容 可自定义
+    6.  每行的高度 | YAxis 的宽度 | 整个 组件所占 宽度 | XAxis 的高度
+3.  接受的 props 
+      1. data
+        ```{
+          id: string // ...
+          name: string // 展示名, 展示在最高层
+          usedTime: {
+            startTime: number // 微秒
+            endTime : number // 微秒
+          },
+          YAxis: string // 任务名 
+          highlightPoints: {
+            time: number // 微秒
+            ...specificProps // 可以传递任意的值, 这些都会 patch 到 绘制的 `ellipse` 上面
+          }[],
+          avarageValue: number | {  } // 微秒, 该任务平均花费的时间,
+          hoverComponent: ( type: 组件的类型(Await | USED | AVARAGE) ) => React.ReactComponent // 可以被 React.cloneElement 所覆盖 , default = (props) => <React.Fragment {...props} />,
+          avarageColor?: string,
+          waitingColor?: string
+          usedColor?: string
+          lineHeight?: number = 50,
+          yAxisWidth?: number = 100,
+          xAxisWidth?: number = 750,
+          xAxisHeight?: number = 1000
+          ...restProps // 可以传递任意的值, 这些都会 patch 到 每个单元 `g` 上面
+        }[]
+        ```
+
+4.  组件设计
+      1.  Root 组件, 由 React.createContext 保存传递 props
+      2.  首先绘制 YAxis 任务名 和 XAxis 上面的 辅助线 , 这两个是固定的高度, XAxis 接受额外的两个 prop -> proption = 1 和 xLeft = 0
+      3.  绘制辅助线, 会根据 proption 和 xLeft 变化. 需要绘制 48 列 data[].length 行 个 辅助线
+      4.  ```javascript
+            data.map((d, i) => {
+              // 1. 拿到 usedTime
+              需要将 startTime 和 endTime 转化为 x 坐标 和 width
+              因此需要计算 
+                1. x 轴 原点是 这一天的 起点时间
+                2. deltaTime = startTime - initialTime
+                3. 总长度是固定的 xAxisWidth, 所以 x / xAxisWidth = deltaTime / fullDayTime 这里的 x = initialX
+                4. 同样的方式 拿到 initialWidth
+                5. AWait 组件的终点是 initialX, 宽度是 此任务和上一个任务的 时间间隔
+                6. 
+            })
+          ```
