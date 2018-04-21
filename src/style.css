@@ -39,6 +39,7 @@ body {
   height: 500px;
   pointer-events: none;
 }
+
 svg {
   stroke: #000;
   stroke-width: 1;
