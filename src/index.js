@@ -1,6 +1,7 @@
 import React from "react";
 import { render } from "react-dom";
-import Hello from "./Hello";
+import { ChangeRect, HalfHour } from "./test";
+
 import "./style.css";
 const styles = {
   fontFamily: "sans-serif",
@@ -62,50 +63,6 @@ const YAxis = ({ names, h }) => {
   );
 };
 
-const calcHoc = Comp => {
-  const Wrapper = ({ proption, xLeft, ...rest }) => {
-    // 0. height & y 是不会变化的
-    // 1. 当比例变小的时候, deltaX 是不会变化
-    // 2. xLeft 变化的时候, width 是不会变化的
-    // 3. 渲染的时候 有一个 initial值 { initialX, initialWidth }
-    // 4. 计算的时候就用这几个值
-    const initialX = 200,
-      initialWidth = 100;
-    // const x = initialX - xLeft; // 不是这样得出 x 值, 我们需要将漫游器 (想象是一个望远镜) 显示某个位置的, 而不是移动目标位置的效果
-    const deltaX = xLeft;
-    const transform = `translate(${deltaX} ,0)`;
-    const width = initialWidth / proption;
-
-    return (
-      <Comp
-        height={50}
-        initialX={200}
-        transform={transform}
-        width={width}
-        {...rest}
-      />
-    );
-  };
-  function forwardRef(props, ref) {
-    return <Wrapper {...props} forwardedRef={ref} />;
-  }
-  const name = Comp.displayName || Comp.name;
-  forwardRef.displayName = `calcProps(${name})`;
-  return React.forwardRef(forwardRef);
-};
-
-const ChangeRect = calcHoc(({ transform, initialX, width, height }) => {
-  return (
-    <rect
-      transform={transform}
-      x={initialX}
-      y="100"
-      width={width}
-      height={height}
-    />
-  );
-});
-
 class App extends React.PureComponent {
   state = {
     proption: 1,
@@ -153,22 +110,46 @@ class App extends React.PureComponent {
               <Download />
               <YAxis names={names} h={h} />
             </defs>
-            {/*<use xlinkHref="#m" x="200" y="200" width="100" height="100" />
+            {/*     <use xlinkHref="#m" x="200" y="200" width="100" height="100" />
         <use xlinkHref="#bs" x="200" y="100" />
         <use xlinkHref="#i" x="300" y="100" />
         <use xlinkHref="#wn" x="400" y="100" />
-        <use xlinkHref="#dl" x="500" y="100" />
-        <symbol id="alert" viewBox="0 0 86 86">
-          <ellipse cx="43" cy="43" rx="40" ry="40" />
-          <ellipse style={{ fill: "black" }} cx="43" cy="65" rx="5" ry="5" />
-          <line style={{ "stroke-width": 8 }} x1="43" y1="19" x2="43" y2="48" />
-        </symbol> */}
+        <use xlinkHref="#dl" x="500" y="100" />*/}
+            <symbol id="alert" viewBox="0 0 86 86">
+              <ellipse cx="43" cy="43" rx="40" ry="40" />
+              <ellipse
+                style={{ fill: "black" }}
+                cx="43"
+                cy="65"
+                rx="5"
+                ry="5"
+              />
+              <line
+                style={{ "stroke-width": 8 }}
+                x1="43"
+                y1="19"
+                x2="43"
+                y2="48"
+              />
+              <ChangeRect {...this.state} />
+            </symbol>
             <use href="#alert" x="100" y="200" width="80" height="100" />
-            <ChangeRect {...this.state} />
+            <use href="#alert" x="00" y="400" width="750" height="100" />
+            <HalfHour {...this.state} />
+            <Slide />
           </svg>
         </div>
       </div>
     );
+  }
+}
+
+class Slide extends React.PureComponent {
+  shouldComponentUpdate() {
+    return false;
+  }
+  render() {
+    return <use href="#render" x="0" y="200" width="50" height="200" />;
   }
 }
 

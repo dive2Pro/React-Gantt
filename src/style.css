@@ -25,6 +25,7 @@ body {
   left: 100px;
   width: 750px;
   height: 600px;
+  pointer-events: none;
 }
 .grid::after {
   content: "";
@@ -34,6 +35,7 @@ body {
   left: 0;
   width: 850px;
   height: 500px;
+  pointer-events: none;
 }
 svg {
   stroke: #000;

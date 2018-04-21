@@ -66,7 +66,7 @@
         > TODO: 发散思维, 提取共同点
         1.  时间轴,  将 24 小时展现为 48列 小rect & 任务数列
             <rect x="" y="" width={rectWidth} height={rectHeight} />
-        2.  ~~~每半个小时区间内~~~任务起止点精确到秒    
+        2.  ~~~每半个小时区间内~~~ 任务起止点精确到秒    
             >   画布整体是 某一天的 [00:00 - 24:00], 宽是固定的(700), 可以通过计算得出 `rect`的 x 和 y, 不同的是缩放比例
             1.  绘制辅助线
             3.  绘制预期时间段 averageValue
@@ -74,7 +74,7 @@
             5.  绘制特殊事件 // []highlightPoints
             6.  绘制等待时间段 // 与前一个任务相距的时间段
             7.  绘制name
-        8.  缩放 & 漫游
+        3.  缩放 & 漫游
             - 效果: 起始比例是 1 , 展现完整的宽度 [0, 700]
                 - 漫游到某一点, 例如 [200, 700], 那么
                     1.  x 轴的变化:
@@ -90,4 +90,35 @@
                         2.  但不可行的一点是, symbol 中图形在 会根据use 中的`width | height`来 **缩放** 整个图形从而确保内部的图形是置中的,显而易见的是这些改变会影响图形的高度
                         3.  如果要调整比例, 那么 use 和 symbol的值都需要改变, 所以这个方案是**不可行**的. 
                     2.  根据比例调整, 直接按比例调整 每个元素的 width 的值
-                    
+                        已测试 , 调整比例和 xLeft都可行. 代码可检查 `tests.js`
+        4.  响应事件
+            > Svg 是dom 元素, 相比较 canvas , 在事件处理上有优势. (https://www.w3.org/TR/SVG11/interact.html)
+            
+            1.  hover 事件 , onMouseEnter, onMouseLeave
+            2.  click 事件 , onClick
+    4.  漫游器
+        > 是一个渲染了微小化的 X轴上元素的, 左右 extend 和 drag两个功能 的 Component
+        同一个 svg 下, 确保位置计算时
+        1.  渲染和 [3] 一样, 但是initial一次, 后期的 state change 不影响
+        2.  通过 react-dnd 添加 extend 和 drag 功能
+        3.  对外接受一个 onChange 回调 prop
+        4.  测试:
+            使用 `symbol` 包裹 [3] 的组件, 可以使用该方式渲染一个微小化的 x轴,
+            ```javascript
+              const HalfHour = props => {
+                return (
+                  <React.Fragment>
+                    <defs>
+                      <symbol id="render" viewBox="0 0 750 550">
+                        <ChangeRect {...props} />
+                        <ChangeRect {...props} index={2} />
+                        <Dot {...props} />
+                      </symbol>
+                    </defs>
+                    <use href="#render" x="0" y="00" width="750" height="550" />
+                  </React.Fragment>
+                );
+              };
+            ```
+             遇到的问题是 当在其他位置 `use` 这个 symbol 的时候, 它的改变是同步的. 而这是我不想要的
+             TODO: 找到一个方式可以阻止其更新状态
