@@ -1,0 +1,44 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+  background: #e9e9e9;
+}
+body {
+  margin: 0;
+  text-align: center;
+}
+.grid {
+  width: 750px;
+  height: 500px;
+  margin: 0 auto;
+  padding-top: 100px;
+  padding-left: 100px;
+  background-image: url("https://github.com/tutsplus/how-to-hand-code-svg/blob/master/Starter%20Files/grid.png?raw=true");
+  position: relative;
+}
+.grid::before {
+  content: "";
+  border-left: 1px solid #7c7cea;
+  position: absolute;
+  top: 0;
+  left: 100px;
+  width: 750px;
+  height: 600px;
+}
+.grid::after {
+  content: "";
+  border-top: 1px solid #7c7cea;
+  position: absolute;
+  top: 100px;
+  left: 0;
+  width: 850px;
+  height: 500px;
+}
+svg {
+  stroke: #000;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
