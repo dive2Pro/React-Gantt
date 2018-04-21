@@ -11,6 +11,8 @@ body {
 .grid {
   width: 750px;
   height: 500px;
+  overflow-x: hidden;
+  overflow-y: scroll;
   margin: 0 auto;
   padding-top: 100px;
   padding-left: 100px;

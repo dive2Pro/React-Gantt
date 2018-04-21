@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { ChangeRect, HalfHour } from "./test";
+import { ChangeRect, HalfHour, ID_READONLY } from "./test";
 
 import "./style.css";
 const styles = {
@@ -69,7 +69,6 @@ class App extends React.PureComponent {
     xLeft: 0
   };
   handleInputProptionChange = ({ target: { value } }) => {
-    console.log(value);
     // value is float
     this.setState({
       proption: value
@@ -111,10 +110,10 @@ class App extends React.PureComponent {
               <YAxis names={names} h={h} />
             </defs>
             {/*     <use xlinkHref="#m" x="200" y="200" width="100" height="100" />
-        <use xlinkHref="#bs" x="200" y="100" />
-        <use xlinkHref="#i" x="300" y="100" />
-        <use xlinkHref="#wn" x="400" y="100" />
-        <use xlinkHref="#dl" x="500" y="100" />*/}
+          <use xlinkHref="#bs" x="200" y="100" />
+          <use xlinkHref="#i" x="300" y="100" />
+          <use xlinkHref="#wn" x="400" y="100" />
+          <use xlinkHref="#dl" x="500" y="100" />
             <symbol id="alert" viewBox="0 0 86 86">
               <ellipse cx="43" cy="43" rx="40" ry="40" />
               <ellipse
@@ -135,22 +134,21 @@ class App extends React.PureComponent {
             </symbol>
             <use href="#alert" x="100" y="200" width="80" height="100" />
             <use href="#alert" x="00" y="400" width="750" height="100" />
+            */}
             <HalfHour {...this.state} />
-            <Slide />
           </svg>
         </div>
+        <svg width="1400" height={400} style={{ background: "white" }}>
+          <use
+            href={`#${ID_READONLY}`}
+            x="-400"
+            y="0"
+            width="1400"
+            height="500"
+          />
+        </svg>
       </div>
     );
   }
 }
-
-class Slide extends React.PureComponent {
-  shouldComponentUpdate() {
-    return false;
-  }
-  render() {
-    return <use href="#render" x="0" y="200" width="50" height="200" />;
-  }
-}
-
 render(<App />, document.getElementById("root"));

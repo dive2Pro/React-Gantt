@@ -1,25 +1,31 @@
 import React from "react";
 
 const calcHoc = Comp => {
-  const Wrapper = ({ proption, xLeft, index, ...rest }) => {
+  const Wrapper = ({ proption, xLeft, index = 0, readOnly, ...rest }) => {
     // 0. height & y 是不会变化的
     // 1. 当比例变小的时候, deltaX 是不会变化
     // 2. xLeft 变化的时候, width 是不会变化的
     // 3. 渲染的时候 有一个 initial值 { initialX, initialWidth }
     // 4. 计算的时候就用这几个值
-    const initialX = 200,
-      initialWidth = 100;
+    const initialX = 50 * index + 50,
+      initialWidth = 50;
     // const x = initialX - xLeft; // 不是这样得出 x 值, 我们需要将漫游器 (想象是一个望远镜) 显示某个位置的, 而不是移动目标位置的效果
     const deltaX = xLeft;
     const transform = `translate(${deltaX} ,0)`;
     const width = initialWidth / proption;
-
+    // (1 - proption) * initialWidth
+    // initialWidth / proption - initialWidth = (1 / proption - 1) * intialWidth
+    const deltaWidth = width - initialWidth;
+    const x = initialX / proption;
+    const height = readOnly ? 2 : 50;
+    const y = readOnly ? 4 * index : 50 * index;
     return (
       <Comp
-        height={50}
-        x={200 * index}
+        height={height}
+        x={x}
         transform={transform}
         width={width}
+        y={y}
         {...rest}
       />
     );
@@ -32,7 +38,7 @@ const calcHoc = Comp => {
   return React.forwardRef(forwardRef);
 };
 
-const ChangeRect = calcHoc(({ transform, x, width, height }) => {
+const ChangeRect = calcHoc(({ transform, x, width, height, y }) => {
   return (
     <rect
       id="help-rect"
@@ -48,7 +54,7 @@ const ChangeRect = calcHoc(({ transform, x, width, height }) => {
       fill={"blue"}
       transform={transform}
       x={x}
-      y="100"
+      y={y}
       width={width}
       height={height}
     />
@@ -64,7 +70,7 @@ const Dot = calcHoc(({ transform, x, width, height }) => {
         }}
         fill={"pink"}
         cx={x}
-        cy={100}
+        cy={50}
         rx={20}
         ry={20}
       />
@@ -72,17 +78,35 @@ const Dot = calcHoc(({ transform, x, width, height }) => {
   );
 });
 
+export const ID = "@@Gantt";
+export const ID_READONLY = ID + "-ReadOnly";
+class Inner extends React.Component {
+  shouldComponentUpdate(...args) {
+    const { readOnly } = this.props;
+    return !readOnly;
+  }
+  render() {
+    const props = this.props;
+    const id = props.readOnly ? ID + "-ReadOnly" : ID;
+    return (
+      <symbol id={id} viewBox="0 0 750 550">
+        <ChangeRect {...props} />
+        <ChangeRect {...props} index={1} />
+        <ChangeRect {...props} index={16} />
+        <Dot {...props} />
+      </symbol>
+    );
+  }
+}
+
 const HalfHour = props => {
   return (
     <React.Fragment>
       <defs>
-        <symbol id="render" viewBox="0 0 750 550">
-          <ChangeRect {...props} />
-          <ChangeRect {...props} index={2} />
-          <Dot {...props} />
-        </symbol>
+        <Inner {...props} />
+        <Inner {...props} readOnly />
       </defs>
-      <use href="#render" x="0" y="00" width="750" height="550" />
+      <use href={"#" + ID} x="0" y="0" width="750" height="550" />
     </React.Fragment>
   );
 };

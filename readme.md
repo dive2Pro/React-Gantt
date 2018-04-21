@@ -89,8 +89,14 @@
                         1.  symbol 包裹 一些 svg 图形, 定义 viewBox `[x , y, w , h]`, 设置每个模板的可见部分应该是什么. 预想是改变 width 的值
                         2.  但不可行的一点是, symbol 中图形在 会根据use 中的`width | height`来 **缩放** 整个图形从而确保内部的图形是置中的,显而易见的是这些改变会影响图形的高度
                         3.  如果要调整比例, 那么 use 和 symbol的值都需要改变, 所以这个方案是**不可行**的. 
-                    2.  根据比例调整, 直接按比例调整 每个元素的 width 的值
-                        已测试 , 调整比例和 xLeft都可行. 代码可检查 `tests.js`
+                    2.  直接按比例调整 每个元素的 width 的值
+                        ~~~已测试, 调整比例和 xLeft都可行. 代码可检查 `tests.js`~~~
+                        在改变比例时, x 的起点位置同样要变化
+                        如何变化:
+                          ~~~1.  根据 比例 计算得出 `rect` 将会改变的 deltaWidth 
+                                  = initialWidth / proption - initialWidth 
+                          2.  这个值 / proption 就是 两者之间的距离~~~
+                          deltaX = initialX / proption
         4.  响应事件
             > Svg 是dom 元素, 相比较 canvas , 在事件处理上有优势. (https://www.w3.org/TR/SVG11/interact.html)
             
@@ -103,7 +109,9 @@
         2.  通过 react-dnd 添加 extend 和 drag 功能
         3.  对外接受一个 onChange 回调 prop
         4.  测试:
-            使用 `symbol` 包裹 [3] 的组件, 可以使用该方式渲染一个微小化的 x轴,
+            ~~~使用 `symbol` 包裹 [3] 的组件, 可以使用该方式渲染一个微小化的 x轴,~~~
+            使用 `symbol` , 会根据 width | height 的大小, 缩放整个 `use` 的 svg图形, 使其在 `width & height` 的中心位置.
+            但是没有办法去限定 height 的时候修改 width 的长度, 这两个总是会取其一来计算位置. 
             ```javascript
               const HalfHour = props => {
                 return (
@@ -120,5 +128,31 @@
                 );
               };
             ```
+            
+
              遇到的问题是 当在其他位置 `use` 这个 symbol 的时候, 它的改变是同步的. 而这是我不想要的
-             TODO: 找到一个方式可以阻止其更新状态
+             
+             找到一个方式可以阻止其更新状态
+             ```javascript
+              export const ID = "@@Gantt";
+              export const ID_READONLY = ID + "-ReadOnly";
+              class Inner extends React.Component {
+                shouldComponentUpdate(...args) {
+                  const { readOnly } = this.props;
+                  return !readOnly;
+                }
+                render() {
+                  const props = this.props;
+                  const id = props.readOnly ? ID + "-ReadOnly" : ID;
+                  return (
+                    <symbol id={id} viewBox="0 0 750 550">
+                      <ChangeRect {...props} />
+                      <ChangeRect {...props} index={1} />
+                      <Dot {...props} />
+                    </symbol>
+                  );
+                }
+              }
+              ```
+              ~~~渲染两个 X 轴到 refs 中,在使用的时候通过 `use` 的 `width` 和 `height` 控制视口的大小~~~
+              根据 `readOnly` 属性值 在 calc 时 改变 `SVG` 图形的 高度 从而改变整个 svg 的高度
