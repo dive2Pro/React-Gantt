@@ -42,6 +42,7 @@ const YAxis = () => {
     </GanttContext.Consumer>
   );
 };
+const columns = 48;
 
 const HelpRects = () => {
   return (
@@ -50,7 +51,6 @@ const HelpRects = () => {
         return (
           <GanttStateContext.Consumer>
             {({ xLeft, proption }) => {
-              const columns = 48;
               const rows = data.length;
               let rects = [];
               const width = xAxisWidth / columns / proption;
@@ -87,14 +87,20 @@ const HelpRects = () => {
 const dayMillisedons = 1000 * 3600 * 24;
 const dateToMilliseconds = date => moment(date).valueOf();
 
-const getUsedPositions = usedTime => {
-  const m = moment(usedTime.startTime).startOf("day");
+function getDayMilliseconds(date) {
+  const m = moment(date).startOf("day");
   // 当天 00:00 时的 milliseconds 值
   const initialTime = m.valueOf();
+  return initialTime;
+}
+
+/**
+ *
+ */
+const getUsedPositions = (usedTime, initialTime) => {
   const { startTime, endTime } = usedTime;
   const startMilliseconds = dateToMilliseconds(startTime);
   const endMilliseconds = dateToMilliseconds(endTime);
-
   const deltaTime = startMilliseconds - initialTime;
   const timeStartPoint = deltaTime;
   const timeWidth = endMilliseconds - startMilliseconds;
@@ -108,7 +114,6 @@ const getUsedPositions = usedTime => {
 const calcHoc = Comp => {
   const Wrapper = ({ dataItem, xAxisWidth, h, i, awaitStartTime, ...rest }) => {
     const { usedTime, avarageValue } = dataItem;
-    const { timeStartPoint, timeWidth } = getUsedPositions(usedTime);
 
     return (
       <GanttStateContext.Consumer>
@@ -118,8 +123,14 @@ const calcHoc = Comp => {
           readOnly,
           ontimeColors,
           timeoutColors,
+          dateTime,
           ...restState
         }) => {
+          const { timeStartPoint, timeWidth } = getUsedPositions(
+            usedTime,
+            dateTime
+          );
+
           const deltaX = xLeft;
           const transform = `translate(${deltaX} ,0)`;
           function calcWidth(time) {
@@ -186,6 +197,7 @@ const TaskItems = calcHoc(
     awaitColor,
     h,
     i,
+    transform,
     ...rest
   }) => {
     const usedY = y + h * 2 / 3;
@@ -193,7 +205,7 @@ const TaskItems = calcHoc(
 
     const { avarage, used, highlight } = color;
     return (
-      <g>
+      <g transform={transform}>
         <text y={y + 12} fontSize={10} x={x} height={h / 3}>
           {dataItem.name}
         </text>
@@ -282,6 +294,7 @@ const HightLightPoint = ({
 
   return React.cloneElement(Container, {}, children);
 };
+
 const UsedView = ({ color, highlightPoints = [], ...rest }) => {
   return (
     <React.Fragment>
@@ -311,46 +324,48 @@ const Await = ({
   const str = "等待中";
 
   const children = (
-    <g>
-      <line
-        strokeWidth="2"
-        x1={x1}
-        y1={y1}
-        x2={x1}
-        y2={y2 + height}
-        stroke={color}
-      />
-      <line
-        strokeWidth="0.5"
-        strokeDasharray={[10, 3]}
-        x1={x1}
-        y1={y1 + height / 2}
-        x2={x2}
-        y2={y2 + height / 2}
-        stroke={color}
-      />
-      <line
-        strokeWidth="2"
-        x1={x1 + width}
-        y1={y1}
-        x2={x1 + width}
-        y2={y2 + height}
-        stroke={color}
-      />
-      <symbol id="_wait_text" viewBox="0 0 100 50">
-        <rect x={0} y={-6} fill={"white"} width={50} height={2} />
-        <text fill={"black"} x={6} y={0} fontSize={fontSize}>
-          {str}
-        </text>
-      </symbol>
-      <use
-        xlinkHref="#_wait_text"
-        x={x1 + width / 2 - fontSize * str.length / 2}
-        y={y1}
-        width={80}
-        height={60}
-      />
-    </g>
+    <React.Fragment>
+      <g>
+        <line
+          strokeWidth="2"
+          x1={x1}
+          y1={y1}
+          x2={x1}
+          y2={y2 + height}
+          stroke={color}
+        />
+        <line
+          strokeWidth="0.5"
+          strokeDasharray={[10, 3]}
+          x1={x1}
+          y1={y1 + height / 2}
+          x2={x2}
+          y2={y2 + height / 2}
+          stroke={color}
+        />
+        <line
+          strokeWidth="2"
+          x1={x1 + width}
+          y1={y1}
+          x2={x1 + width}
+          y2={y2 + height}
+          stroke={color}
+        />
+        <symbol id="_wait_text" viewBox="0 0 100 50">
+          <rect x={0} y={-6} fill={"white"} width={50} height={2} />
+          <text fill={"black"} x={6} y={0} fontSize={fontSize}>
+            {str}
+          </text>
+        </symbol>
+        <use
+          xlinkHref="#_wait_text"
+          x={x1 + width / 2 - fontSize * str.length / 2}
+          y={y1}
+          width={80}
+          height={60}
+        />
+      </g>
+    </React.Fragment>
   );
   return React.cloneElement(Container, null, children);
 };
@@ -429,8 +444,8 @@ export default class ReactGantt extends React.PureComponent {
     awaitColor: "hsl(103, 77%, 53%)",
     lineHeight: 50,
     yAxisWidth: 100,
-    xAxisWidth: 750,
-    xAxisHeight: 1000
+    xAxisWidth: 1150,
+    xAxisHeight: 200
   };
   static Types = {
     AWAIT: "__AWAIT",
@@ -442,8 +457,21 @@ export default class ReactGantt extends React.PureComponent {
   }
   state = {
     proption: 1,
-    xLeft: -1 * 0
+    xLeft: -1 * 0,
+    dateTime: getDayMilliseconds(this.props.date)
   };
+  handleInputProptionChange = ({ target: { value } }) => {
+    // value is float
+    this.setState({
+      proption: value
+    });
+  };
+  handleInputXChange = ({ target: { value } }) => {
+    this.setState({
+      xLeft: value * -1
+    });
+  };
+
   render() {
     const {
       xAxisHeight,
@@ -464,10 +492,29 @@ export default class ReactGantt extends React.PureComponent {
           }}
         >
           <div>
+            Proption:
+            <input
+              type="range"
+              max="1"
+              min="0.01"
+              step="0.01"
+              defaultValue="1"
+              onChange={this.handleInputProptionChange}
+            />
+            X:
+            <input
+              type="range"
+              max={rest.xAxisWidth}
+              min="0"
+              defaultValue="0"
+              onChange={this.handleInputXChange}
+            />
             <div className="chart-container" style={{ height: xAxisHeight }}>
               <Chart {...this.props} />
             </div>
-            <div>{/*刻度 */}</div>
+            <div>
+              <Graduation {...rest} {...this.state} />
+            </div>
             <div>{/*slide*/}</div>
           </div>
         </GanttStateContext.Provider>
@@ -475,3 +522,52 @@ export default class ReactGantt extends React.PureComponent {
     );
   }
 }
+
+const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
+  // 每一格子的宽度
+  const width = xAxisWidth / columns / proption;
+  const h = 12;
+  // 如果 每个格子的宽度 < 某个值, 那么 偶数位置的column 则不绘制
+  function filterOdd() {
+    return true;
+  }
+  const m = moment(dateTime);
+  let str, props;
+  const fontSize = 12;
+  const children = new Array(columns)
+    .fill(0)
+    // .filter(filterOdd)
+    .map((_, i) => {
+      // 内容
+      if (i > 0) {
+        str = m.add("m", 30).format("HH:mm");
+      } else {
+        str = m.format("HH:mm");
+      }
+      const strWidth = (str.length - 1) * fontSize;
+      // 计算偏移
+      props = {
+        x: yAxisWidth + i * width - strWidth / 4,
+        key: str,
+        children: str,
+        stroke: "black",
+        y: h,
+        strokeWidth: "0.1",
+        fontSize
+      };
+
+      if (i % 2 == 1 && width > strWidth) {
+        // console.log(i);
+        return <text {...props} />;
+      } else if (i % 2 == 0) {
+        return <text {...props} />;
+      }
+    })
+    .filter(Boolean);
+
+  return (
+    <svg height={h} width={xAxisWidth + yAxisWidth}>
+      {children}
+    </svg>
+  );
+};

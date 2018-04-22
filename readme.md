@@ -176,8 +176,9 @@
     5.  waiting | usedTime | avarageValue, 颜色 | 内容 可自定义
     6.  每行的高度 | YAxis 的宽度 | 整个 组件所占 宽度 | XAxis 的高度
 3.  接受的 props 
-      1. data
-        ```{
+      1. data required
+        ```
+        {
           id: string // ...
           name: string // 展示名, 展示在最高层
           usedTime: {
@@ -201,7 +202,8 @@
           ...restProps // 可以传递任意的值, 这些都会 patch 到 每个单元 `g` 上面
         }[]
         ```
-
+      2. date 
+        当天的日期 required
 4.  组件设计
       1.  Root 组件, 由 React.createContext 保存传递 props
       2.  首先绘制 YAxis 任务名 和 XAxis 上面的 辅助线 , 这两个是固定的高度, XAxis 接受额外的两个 prop -> proption = 1 和 xLeft = 0
@@ -219,3 +221,7 @@
                 6. 
             })
           ```
+      5. 绘制底部刻度
+          见 `<Graduation />`
+      6. slide 漫游器
+       

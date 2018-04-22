@@ -96,7 +96,7 @@ const DATA = [
 
 class App extends React.PureComponent {
   render() {
-    return <Gantt data={DATA} />;
+    return <Gantt data={DATA} date={"2018-4-21"} />;
   }
 }
 
