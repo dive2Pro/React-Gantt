@@ -224,4 +224,12 @@
       5. 绘制底部刻度
           见 `<Graduation />`
       6. slide 漫游器
-       
+          - 遇到的问题:
+            1.  drag 状态的保持. 是只在 drag 时, 浏览器才会 有 列如 鼠标保持 drag 图标
+            2.  draging 中, 如何得到 坐标数值从而改变 state 
+
+
+# 优化
+
+1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, 它的`Comsumer` 都会重新计算它的 `children()`
+2.  dragging handler 花费时间过多

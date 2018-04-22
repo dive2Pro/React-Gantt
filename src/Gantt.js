@@ -1,5 +1,10 @@
 import React from "react";
 import moment from "moment";
+import { DragDropContextProvider, DragSource } from "react-dnd";
+import createHTML5Backend from "react-dnd-html5-backend";
+import throttle from "lodash/throttle";
+
+import "./gantt.css";
 
 const GanttContext = React.createContext({});
 const GanttStateContext = React.createContext({});
@@ -45,46 +50,68 @@ const YAxis = () => {
 };
 const columns = 48;
 
-const HelpRects = () => {
-  return (
-    <GanttContext.Consumer>
-      {({ lineHeight: h, data, xAxisWidth }) => {
-        return (
-          <GanttStateContext.Consumer>
-            {({ xLeft, proption }) => {
-              const rows = data.length;
-              let rects = [];
-              const width = xAxisWidth / columns / proption;
-              const transform = `translate( ${xLeft}, 0)`;
-              for (let r = 0; r < rows; r++) {
-                let y = h * r;
-                for (let c = 0; c < columns; c++) {
-                  let x = width * c;
-                  rects.push(
-                    <rect
-                      transform={transform}
-                      stroke="blue"
-                      strokeWidth={0.2}
-                      strokeOpacity={0.5}
-                      strokeDasharray={[5, 3]}
-                      strokeDashoffset={2}
-                      fill={"#fff"}
-                      x={x}
-                      y={y}
-                      width={width}
-                      height={h}
-                    />
-                  );
-                }
-              }
-              return <g className="help-rects"> {rects}</g>;
-            }}
-          </GanttStateContext.Consumer>
+class HelpRect extends React.Component {
+  shouldComponentUpdate() {
+    return false;
+  }
+
+  render() {
+    const { r, c, h, originalWidth } = this.props;
+    return (
+      <GanttStateContext.Consumer>
+        {({ xLeft, proption }) => {
+          const transform = `translate( ${xLeft * -1}, 0)`;
+          let y = h * r;
+          const width = originalWidth / proption;
+          let x = width * c;
+
+          return (
+            <rect
+              transform={transform}
+              stroke="blue"
+              strokeWidth={0.2}
+              strokeOpacity={0.5}
+              strokeDasharray={[5, 3]}
+              strokeDashoffset={2}
+              fill={"#fff"}
+              x={x}
+              y={y}
+              width={width}
+              height={h}
+            />
+          );
+        }}
+      </GanttStateContext.Consumer>
+    );
+  }
+}
+
+class HelpRects extends React.Component {
+  shouldComponentUpdate() {
+    return false;
+  }
+
+  render() {
+    const { lineHeight: h, data, xAxisWidth } = this.props;
+    const rows = data.length;
+    let rects = [];
+    console.log(xAxisWidth);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < columns; c++) {
+        rects.push(
+          <HelpRect
+            key={r + " - " + c}
+            originalWidth={xAxisWidth / columns}
+            r={r}
+            c={c}
+            h={h}
+          />
         );
-      }}
-    </GanttContext.Consumer>
-  );
-};
+      }
+    }
+    return <g className="help-rects"> {rects}</g>;
+  }
+}
 const dayMillisedons = 1000 * 3600 * 24;
 const dateToMilliseconds = date => moment(date).valueOf();
 
@@ -145,7 +172,7 @@ const calcHoc = Comp => {
           const deltaX = readOnly ? 0 : xLeft;
           proption = readOnly ? 1 : proption;
 
-          const transform = `translate(${deltaX} ,0)`;
+          const transform = `translate(${deltaX * -1} ,0)`;
           function calcWidth(time) {
             return time / dayMillisedons * xAxisWidth / proption;
           }
@@ -216,7 +243,7 @@ const TaskItems = calcHoc(
   }) => {
     const usedY = y + h * 2 / 3;
     const usedH = h / 4;
-
+    // console.log(" taskItems");
     const { avarage, used, highlight } = color;
     return (
       <g fontSize={fontSize} transform={transform}>
@@ -390,6 +417,7 @@ const Datas = ({ readOnly }) => {
     <GanttContext.Consumer>
       {({ data, lineHeight: h, xAxisWidth, ...rest }) => {
         const ary = [];
+        console.log(" datas ");
         for (let i = 0, length = data.length; i < length; i++) {
           const dataItem = data[i];
           const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
@@ -413,10 +441,13 @@ const Datas = ({ readOnly }) => {
 };
 
 class XAxis extends React.Component {
+  shouldComponentUpdate() {
+    return false;
+  }
   render() {
     return (
       <React.Fragment>
-        <HelpRects />
+        <HelpRects {...this.props} />
         <defs>{React.createElement(Datas, { readOnly: true })}</defs>
         {React.createElement(Datas)}
       </React.Fragment>
@@ -424,16 +455,19 @@ class XAxis extends React.Component {
   }
 }
 
-class Chart extends React.PureComponent {
+class Chart extends React.Component {
+  shouldComponentUpdate() {
+    return false;
+  }
   render() {
-    const { yAxisWidth, xAxisWidth, xAxisHeight } = this.props;
+    const { yAxisWidth, xAxisWidth, xAxisHeight, ...rest } = this.props;
     return (
       <svg width={yAxisWidth + xAxisWidth} height={xAxisHeight}>
         <svg width={yAxisWidth}>
-          <YAxis />
+          <YAxis {...rest} />
         </svg>
         <svg x={yAxisWidth}>
-          <XAxis />
+          <XAxis {...this.props} />
         </svg>
       </svg>
     );
@@ -473,11 +507,12 @@ export default class ReactGantt extends React.PureComponent {
     dateTime: getDayMilliseconds(this.props.date)
   };
 
-  handleChange = args => {
+  handleChange = ({ xLeft, proption }) => {
     this.setState({
-      ...args
+      xLeft
     });
   };
+
   render() {
     const {
       xAxisHeight,
@@ -486,9 +521,10 @@ export default class ReactGantt extends React.PureComponent {
       awaitColor,
       ...rest
     } = this.props;
+
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     return (
-      <GanttContext.Provider value={{ ...rest }}>
+      <GanttContext.Provider value={this.props}>
         <GanttStateContext.Provider
           value={{
             ...this.state,
@@ -499,7 +535,7 @@ export default class ReactGantt extends React.PureComponent {
         >
           <div>
             <div className="chart-container" style={{ height: xAxisHeight }}>
-              <Chart {...this.props} />
+              <Chart {...this.props} {...this.state} />
             </div>
             <div>
               <Graduation {...rest} {...this.state} />
@@ -522,7 +558,9 @@ class Slide extends React.PureComponent {
     stateReducer: (state, change) => change,
     onStateChange: () => {}
   };
-
+  static DragTypes = {
+    STRETCH: "__STRETCH__"
+  };
   state = {
     proption: this.props.proption,
     xLeft: this.props.xLeft
@@ -598,12 +636,52 @@ class Slide extends React.PureComponent {
     });
   };
 
+  handleRef = n => {
+    this.container = n;
+  };
+
+  handleXLeftChange = offset => {
+    // 修改 xLeft 和 proption
+
+    // offset =  offset;
+
+    const { xAxisWidth } = this.props;
+    const { xLeft, proption } = this.getState();
+    const prevWidth = parseFloat(proption) * xAxisWidth;
+
+    let deltaWidth = xLeft + offset;
+
+    if (deltaWidth < 0) {
+      deltaWidth = 0;
+    } else {
+      // deltaWidth = offset
+    }
+
+    const currentWidth = prevWidth - deltaWidth;
+    const currentProption = currentWidth / xAxisWidth;
+
+    this.internalSetState({
+      xLeft: deltaWidth
+      // proption: currentProption
+    });
+  };
+  handleXRightChange = offset => {
+    // 修改 proption
+  };
   render() {
     const { xAxisWidth, yAxisWidth, minLineHeight, data } = this.props;
     let h = minLineHeight * data.length;
-    const { proption } = this.getState();
+    h = h < 50 ? 50 : h;
+    const width = xAxisWidth + yAxisWidth;
+    const { proption, xLeft } = this.getState();
+    const slideStyle = {
+      width: parseFloat(proption) * xAxisWidth,
+      // 这里是跟 xAxis 里面相反的方向
+      left: +xLeft
+    };
+
     return (
-      <div className="bottom-slide">
+      <div ref={this.handleRef} className="bottom-slide">
         Proption:
         <input
           type="range"
@@ -621,14 +699,101 @@ class Slide extends React.PureComponent {
           defaultValue="0"
           onChange={this.handleInputXChange}
         />
-        <svg height={h} width={xAxisWidth + yAxisWidth}>
+        <svg height={h} width={width}>
           <use xlinkHref="#tasks-readOnly" x={yAxisWidth} y={0} />
         </svg>
-        <div className="_slide" />
+        <div
+          className="_slide-container"
+          style={{
+            width: xAxisWidth,
+            left: yAxisWidth,
+            height: h
+          }}
+        >
+          <div className="_slide" style={slideStyle}>
+            <DragStretchPart
+              direction="left"
+              onChange={this.handleXLeftChange}
+            />
+            <div className="_move" style={{ width: 200, height: "100%" }} />
+            <DragStretchPart
+              direction="right"
+              onChange={this.handleXRightChange}
+            />
+          </div>
+        </div>
       </div>
     );
   }
 }
+const tempD = document.createElement("div");
+
+export class StretchPart extends React.Component {
+  state = {};
+  constructor(props) {
+    super(props);
+    // this.handleDraging = throttle(this.handleDraging, 50);
+  }
+
+  componentDidMount() {
+    // this.props.connectDragPreview(getDragPreview())
+  }
+
+  componentDidUpdate() {}
+
+  handleDraging = e => {
+    // e.persist();
+    const pageX = e.pageX;
+    if (this.startX) {
+      const diff = pageX - this.startX;
+      if (Math.abs(diff) > 500 || diff == 0) {
+        return;
+      }
+      // console.log(" -- dragging  ", diff);
+      this.props.onChange(diff);
+      this.startX = pageX;
+    }
+  };
+
+  handleDragEnd = e => {
+    console.log("-end");
+    this.startX = null;
+    document.body.removeChild(tempD);
+  };
+  handleDragStart = e => {
+    // e.persist();
+    tempD.style.backgroundColor = "red";
+    // crt.style.display = "none"; /* or visibility: hidden, or any of the above */
+    document.body.appendChild(tempD);
+    e.dataTransfer.setDragImage(tempD, 0, 0);
+    this.startX = e.pageX;
+  };
+
+  render() {
+    const { direction, connectDragSource, isDragging } = this.props;
+    if (direction == void 0) {
+      throw new Error(`must set field: direction`);
+    }
+    return (
+      <div
+        draggable={true}
+        onDragStart={this.handleDragStart}
+        onDragEnd={this.handleDragEnd}
+        onDrag={this.handleDraging}
+        style={{
+          opacity: isDragging ? 0.5 : 1
+        }}
+        className={`_stretch ${direction}`}
+      />
+    );
+  }
+}
+
+const DragStretchPart =
+  // DragSource(Slide.DragTypes.STRETCH, spec, collect)(
+  StretchPart;
+// );
+
 const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
   // 每一格子的宽度
   const width = xAxisWidth / columns / proption;
@@ -638,7 +803,7 @@ const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
   const m = moment(dateTime);
   let str, props;
   const fontSize = 12;
-  const children = new Array(columns + 1)
+  const children = new Array(columns)
     .fill(0)
     // .filter(filterOdd)
     .map((_, i) => {
@@ -659,7 +824,6 @@ const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
       };
 
       if (i % 2 === 1 && width > strWidth) {
-        // console.log(i);
         return <text {...props} />;
       } else if (i % 2 === 0) {
         return <text {...props} />;
