@@ -4,6 +4,13 @@ import moment from "moment";
 const GanttContext = React.createContext({});
 const GanttStateContext = React.createContext({});
 
+function callAll(...fns) {
+  return function eventHandle(...args) {
+    fns.filter(Boolean).forEach(fn => {
+      fn.apply(null, args);
+    });
+  };
+}
 const YAxis = () => {
   return (
     <GanttContext.Consumer>
@@ -78,13 +85,15 @@ const HelpRects = () => {
   );
 };
 const dayMillisedons = 1000 * 3600 * 24;
+const dateToMilliseconds = date => moment(date).valueOf();
 
 const getUsedPositions = usedTime => {
   const m = moment(usedTime.startTime).startOf("day");
+  // 当天 00:00 时的 milliseconds 值
   const initialTime = m.valueOf();
   const { startTime, endTime } = usedTime;
-  const startMilliseconds = moment(startTime).valueOf();
-  const endMilliseconds = moment(endTime).valueOf();
+  const startMilliseconds = dateToMilliseconds(startTime);
+  const endMilliseconds = dateToMilliseconds(endTime);
 
   const deltaTime = startMilliseconds - initialTime;
   const timeStartPoint = deltaTime;
@@ -96,8 +105,6 @@ const getUsedPositions = usedTime => {
   };
 };
 
-const dateToMilliseconds = date => moment(date).valueOf();
-
 const calcHoc = Comp => {
   const Wrapper = ({ dataItem, xAxisWidth, h, i, awaitStartTime, ...rest }) => {
     const { usedTime, avarageValue } = dataItem;
@@ -105,12 +112,19 @@ const calcHoc = Comp => {
 
     return (
       <GanttStateContext.Consumer>
-        {({ xLeft, proption, readOnly, ontimeColor, timeoutColor }) => {
+        {({
+          xLeft,
+          proption,
+          readOnly,
+          ontimeColors,
+          timeoutColors,
+          ...restState
+        }) => {
           const deltaX = xLeft;
           const transform = `translate(${deltaX} ,0)`;
-          const calcWidth = time => {
+          function calcWidth(time) {
             return time / dayMillisedons * xAxisWidth / proption;
-          };
+          }
 
           const usedWidth = calcWidth(timeWidth);
           const avarageWidth = calcWidth(avarageValue);
@@ -118,7 +132,7 @@ const calcHoc = Comp => {
 
           const height = readOnly ? 2 : h;
           const y = i * h;
-          const color = avarageWidth > usedWidth ? ontimeColor : timeoutColor;
+          const color = avarageWidth > usedWidth ? ontimeColors : timeoutColors;
 
           let awaitWidth;
           const awaitStart = dateToMilliseconds(awaitStartTime);
@@ -127,9 +141,7 @@ const calcHoc = Comp => {
           if (awaitStartTime === -1 || awaitStart > awaitEnd) {
             awaitWidth = 0;
           } else {
-            console.log(awaitStart, awaitEnd);
             awaitWidth = calcWidth(awaitEnd - awaitStart);
-            console.log(awaitWidth);
           }
 
           return (
@@ -143,6 +155,9 @@ const calcHoc = Comp => {
               y={y}
               dataItem={dataItem}
               awaitWidth={awaitWidth}
+              usedTime={usedTime}
+              calcWidth={calcWidth}
+              {...restState}
               {...rest}
             />
           );
@@ -168,51 +183,173 @@ const TaskItems = calcHoc(
     avarageWidth,
     usedWidth,
     color,
+    awaitColor,
     h,
-    i
+    i,
+    ...rest
   }) => {
     const usedY = y + h * 2 / 3;
     const usedH = h / 4;
+
+    const { avarage, used, highlight } = color;
     return (
       <g>
         <text y={y + 12} fontSize={10} x={x} height={h / 3}>
           {dataItem.name}
         </text>
-        <rect x={x} y={y + h / 3} width={avarageWidth} height={h / 4} />
-        <rect x={x} y={usedY} width={usedWidth} height={usedH} />
-        <Await
-          color={color}
-          width={awaitWidth}
-          height={usedH}
-          endX={x}
-          y={usedY}
-          renderHoverComponent={renderHoverComponent}
+        <rect
+          fill={avarage}
+          x={x}
+          y={y + h / 3}
+          width={avarageWidth}
+          height={h / 4}
         />
+        <UsedView
+          color={used}
+          x={x}
+          y={usedY}
+          width={usedWidth}
+          height={usedH}
+          highlightPoints={dataItem.highlightPoints}
+          dataItem={dataItem}
+          renderHoverComponent={renderHoverComponent}
+          highlightColor={highlight}
+          {...rest}
+        />
+        {awaitWidth > 10 && (
+          <Await
+            color={awaitColor}
+            width={awaitWidth}
+            height={usedH}
+            endX={x}
+            y={usedY}
+            dataItem={dataItem}
+            renderHoverComponent={renderHoverComponent}
+          />
+        )}
       </g>
     );
   }
 );
 
-const Await = ({ color, width, height, endX, y, renderHoverComponent }) => {
-  const Container = renderHoverComponent(ReactGantt.Types.AWAIT);
+const HightLightPoint = ({
+  data,
+  renderHoverComponent,
+  x,
+  y,
+  height,
+  usedTime,
+  calcWidth,
+  highlightColor,
+  ...rest
+}) => {
+  const Container = renderHoverComponent.apply(null, [
+    ReactGantt.Types.HIGHLIGHT,
+    data,
+    ...rest
+  ]);
 
+  const {
+    time,
+    onClick,
+    getHighLightProps = function({ className = " ", ...rest }) {
+      return {
+        className: "_highlight_point " + className,
+        ...rest
+      };
+    }
+  } = data;
+  const { timeWidth } = getUsedPositions({
+    startTime: usedTime.startTime,
+    endTime: time
+  });
+
+  const startX = calcWidth(timeWidth) + x,
+    startY = height / 2,
+    r = height / 2;
+
+  const children = (
+    <g onClick={callAll(onClick)} {...getHighLightProps(data)}>
+      <ellipse
+        fill={highlightColor}
+        rx={r}
+        ry={r}
+        cx={startX + r}
+        cy={startY + y}
+      />
+    </g>
+  );
+
+  return React.cloneElement(Container, {}, children);
+};
+const UsedView = ({ color, highlightPoints = [], ...rest }) => {
+  return (
+    <React.Fragment>
+      <rect fill={color} {...rest} />
+      {highlightPoints.map((p, i) => {
+        return <HightLightPoint key={p.time} data={p} {...rest} />;
+      })}
+    </React.Fragment>
+  );
+};
+
+const Await = ({
+  color,
+  width,
+  height,
+  endX,
+  y,
+  renderHoverComponent,
+  dataItem
+}) => {
+  const Container = renderHoverComponent(ReactGantt.Types.AWAIT, dataItem);
   const x1 = endX - width,
     y1 = y,
     x2 = x1 + width,
     y2 = y;
+  const fontSize = 12;
+  const str = "等待中";
+
   const children = (
     <g>
-      {width > 0 && (
-        <line
-          strokeWidth="0.5"
-          strokeDasharray={[10, 3]}
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke={"red"}
-        />
-      )}
+      <line
+        strokeWidth="2"
+        x1={x1}
+        y1={y1}
+        x2={x1}
+        y2={y2 + height}
+        stroke={color}
+      />
+      <line
+        strokeWidth="0.5"
+        strokeDasharray={[10, 3]}
+        x1={x1}
+        y1={y1 + height / 2}
+        x2={x2}
+        y2={y2 + height / 2}
+        stroke={color}
+      />
+      <line
+        strokeWidth="2"
+        x1={x1 + width}
+        y1={y1}
+        x2={x1 + width}
+        y2={y2 + height}
+        stroke={color}
+      />
+      <symbol id="_wait_text" viewBox="0 0 100 50">
+        <rect x={0} y={-6} fill={"white"} width={50} height={2} />
+        <text fill={"black"} x={6} y={0} fontSize={fontSize}>
+          {str}
+        </text>
+      </symbol>
+      <use
+        xlinkHref="#_wait_text"
+        x={x1 + width / 2 - fontSize * str.length / 2}
+        y={y1}
+        width={80}
+        height={60}
+      />
     </g>
   );
   return React.cloneElement(Container, null, children);
@@ -279,8 +416,17 @@ export default class ReactGantt extends React.PureComponent {
   static defaultProps = {
     data: [],
     renderHoverComponent: () => <React.Fragment />,
-    timeoutColor: "#FFE7BA",
-    ontimeColor: "#52C41A",
+    timeoutColors: {
+      used: "hsl(30, 100%, 54%)",
+      avarage: "hsl(39, 100%, 86%)",
+      highlight: "red"
+    },
+    ontimeColors: {
+      used: "hsl(100, 77%, 44%)",
+      avarage: "hsl(103, 77%, 53%)",
+      highlight: "red"
+    },
+    awaitColor: "hsl(103, 77%, 53%)",
     lineHeight: 50,
     yAxisWidth: 100,
     xAxisWidth: 750,
@@ -288,7 +434,8 @@ export default class ReactGantt extends React.PureComponent {
   };
   static Types = {
     AWAIT: "__AWAIT",
-    TASK: "__TASK"
+    TASK: "__TASK",
+    HIGHLIGHT: "__HIGHT_LIGHT"
   };
   constructor(props) {
     super(props);
@@ -298,12 +445,23 @@ export default class ReactGantt extends React.PureComponent {
     xLeft: -1 * 0
   };
   render() {
-    const { xAxisHeight, timeoutColor, ontimeColor, ...rest } = this.props;
+    const {
+      xAxisHeight,
+      timeoutColors,
+      ontimeColors,
+      awaitColor,
+      ...rest
+    } = this.props;
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     return (
       <GanttContext.Provider value={{ ...rest }}>
         <GanttStateContext.Provider
-          value={{ ...this.state, ontimeColor, timeoutColor }}
+          value={{
+            ...this.state,
+            ontimeColors,
+            timeoutColors,
+            awaitColor
+          }}
         >
           <div>
             <div className="chart-container" style={{ height: xAxisHeight }}>

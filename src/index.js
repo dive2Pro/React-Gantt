@@ -38,16 +38,25 @@ const DATA = [
     id: 2, // ...
     name: "斧王", // 展示名, 展示在最高层
     usedTime: {
-      startTime: "2018-4-21, 06:15", // 微秒
-      endTime: "2018-4-21, 7: 22" // 微秒
+      startTime: "2018-4-21, 10:15", // 微秒
+      endTime: "2018-4-21, 12: 22" // 微秒
     },
     YAxis: "打野", // 任务名
     highlightPoints: [
       {
-        time: DATE + "5:30" // 微秒
+        time: DATE + "10:30", // 微秒
+        onClick: e => {
+          console.log(e);
+        },
+        getHighLightProps(data) {
+          console.log(data);
+          return {
+            style: { cursor: "pointer" }
+          };
+        }
       }
     ],
-    avarageValue: 1800000 // 微秒, 该任务平均花费的时间,
+    avarageValue: 7100000 // 微秒, 该任务平均花费的时间,
   },
 
   {
