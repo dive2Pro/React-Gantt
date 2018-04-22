@@ -232,4 +232,6 @@
 # 优化
 
 1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, 它的`Comsumer` 都会重新计算它的 `children()`
-2.  dragging handler 花费时间过多
+2.  dragging handler 花费时间过多, 即使是在 `build` 的环境中 依然会很卡
+    - 代码中, 目前的操作会导致的更新, 主要是 `XAxis` 中的 每一个svg 图形的 `style` , 也就是 `transform` 和 `width`.
+    - 目的是减少 rerender 的操作, 可通过 `throttle` 或者 [更新 style element](https://github.com/atlassian/react-beautiful-dnd/blob/0fb4dc75ea9b625f64cac48602635ac2822f26ec/src/view/style-marshal/style-marshal.js) 等方式

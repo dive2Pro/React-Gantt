@@ -21,6 +21,8 @@ const YAxis = () => {
   return (
     <GanttContext.Consumer>
       {({ data, lineHeight: h, yAxisWidth }) => {
+        console.log(" YA");
+
         const startX = 0,
           startY = 0;
         return data.map(({ YAxis: name }, i) => {
@@ -95,18 +97,19 @@ class HelpRects extends React.Component {
     const { lineHeight: h, data, xAxisWidth } = this.props;
     const rows = data.length;
     let rects = [];
-    console.log(xAxisWidth);
+    // console.log(xAxisWidth);
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < columns; c++) {
-        rects.push(
-          <HelpRect
-            key={r + " - " + c}
-            originalWidth={xAxisWidth / columns}
-            r={r}
-            c={c}
-            h={h}
-          />
-        );
+        rects
+          .push
+          // <HelpRect
+          //   key={r + " - " + c}
+          //   originalWidth={xAxisWidth / columns}
+          //   r={r}
+          //   c={c}
+          //   h={h}
+          // />
+          ();
       }
     }
     return <g className="help-rects"> {rects}</g>;
@@ -151,6 +154,8 @@ const calcHoc = Comp => {
     ...rest
   }) => {
     const { usedTime, avarageValue } = dataItem;
+    const awaitStart = dateToMilliseconds(awaitStartTime);
+    const awaitEnd = dateToMilliseconds(usedTime.startTime);
 
     return (
       <GanttStateContext.Consumer>
@@ -171,8 +176,8 @@ const calcHoc = Comp => {
           const height = readOnly ? minLineHeight : h;
           const deltaX = readOnly ? 0 : xLeft;
           proption = readOnly ? 1 : proption;
-
           const transform = `translate(${deltaX * -1} ,0)`;
+
           function calcWidth(time) {
             return time / dayMillisedons * xAxisWidth / proption;
           }
@@ -185,8 +190,6 @@ const calcHoc = Comp => {
           const color = avarageWidth > usedWidth ? ontimeColors : timeoutColors;
 
           let awaitWidth;
-          const awaitStart = dateToMilliseconds(awaitStartTime);
-          const awaitEnd = dateToMilliseconds(usedTime.startTime);
 
           if (awaitStartTime === -1 || awaitStart > awaitEnd) {
             awaitWidth = 0;
@@ -302,7 +305,6 @@ const HightLightPoint = ({
     data,
     ...rest
   ]);
-
   const {
     time,
     onClick,
@@ -333,6 +335,7 @@ const HightLightPoint = ({
       />
     </g>
   );
+  // console.log(" hight lisht");
 
   return React.cloneElement(Container, {}, children);
 };
@@ -466,6 +469,10 @@ class Chart extends React.Component {
         <svg width={yAxisWidth}>
           <YAxis {...rest} />
         </svg>
+        {/**
+          * 
+       
+          */}
         <svg x={yAxisWidth}>
           <XAxis {...this.props} />
         </svg>
@@ -561,6 +568,10 @@ class Slide extends React.PureComponent {
   static DragTypes = {
     STRETCH: "__STRETCH__"
   };
+  constructor(props) {
+    super(props);
+    // this.handleXLeftChange = throttle(this.handleXLeftChange, 5 , true)
+  }
   state = {
     proption: this.props.proption,
     xLeft: this.props.xLeft
@@ -664,6 +675,7 @@ class Slide extends React.PureComponent {
       xLeft: deltaWidth
       // proption: currentProption
     });
+    // this.props.onStateChange({xLeft: deltaWidth})
   };
   handleXRightChange = offset => {
     // 修改 proption
@@ -732,7 +744,7 @@ export class StretchPart extends React.Component {
   state = {};
   constructor(props) {
     super(props);
-    // this.handleDraging = throttle(this.handleDraging, 50);
+    this.handleDraging = throttle(this.handleDraging, 30, true);
   }
 
   componentDidMount() {
@@ -740,7 +752,10 @@ export class StretchPart extends React.Component {
   }
 
   componentDidUpdate() {}
-
+  _handleDraging = e => {
+    e.persist();
+    this.handleDraging(e);
+  };
   handleDraging = e => {
     // e.persist();
     const pageX = e.pageX;
@@ -749,7 +764,6 @@ export class StretchPart extends React.Component {
       if (Math.abs(diff) > 500 || diff == 0) {
         return;
       }
-      // console.log(" -- dragging  ", diff);
       this.props.onChange(diff);
       this.startX = pageX;
     }
@@ -779,7 +793,7 @@ export class StretchPart extends React.Component {
         draggable={true}
         onDragStart={this.handleDragStart}
         onDragEnd={this.handleDragEnd}
-        onDrag={this.handleDraging}
+        onDrag={this._handleDraging}
         style={{
           opacity: isDragging ? 0.5 : 1
         }}
