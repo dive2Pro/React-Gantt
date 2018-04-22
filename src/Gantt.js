@@ -79,50 +79,70 @@ const HelpRects = () => {
 };
 const dayMillisedons = 1000 * 3600 * 24;
 
-const getInital = ({ xAxisWidth, usedTime }) => {
+const getUsedPositions = usedTime => {
   const m = moment(usedTime.startTime).startOf("day");
   const initialTime = m.valueOf();
   const { startTime, endTime } = usedTime;
   const startMilliseconds = moment(startTime).valueOf();
   const endMilliseconds = moment(endTime).valueOf();
-  const deltaTime = startMilliseconds - initialTime;
-  //   3. 总长度是固定的 xAxisWidth, 所以 x / xAxisWidth = deltaTime / fullDayTime 这里的 x = initialX
-  const widthProption = deltaTime / dayMillisedons;
-  const initialX = widthProption * xAxisWidth;
 
-  //   4. 同样的方式 拿到 initialWidth
-  const initialWidth =
-    (endMilliseconds - startMilliseconds) / dayMillisedons * xAxisWidth;
+  const deltaTime = startMilliseconds - initialTime;
+  const timeStartPoint = deltaTime;
+  const timeWidth = endMilliseconds - startMilliseconds;
 
   return {
-    initialX,
-    initialWidth
+    timeStartPoint,
+    timeWidth
   };
 };
 
+const dateToMilliseconds = date => moment(date).valueOf();
+
 const calcHoc = Comp => {
-  const Wrapper = ({ dataItem, xAxisWidth, h, i, ...rest }) => {
-    const { initialX, initialWidth } = getInital({
-      xAxisWidth,
-      usedTime: dataItem.usedTime
-    });
+  const Wrapper = ({ dataItem, xAxisWidth, h, i, awaitStartTime, ...rest }) => {
+    const { usedTime, avarageValue } = dataItem;
+    const { timeStartPoint, timeWidth } = getUsedPositions(usedTime);
+
     return (
       <GanttStateContext.Consumer>
-        {({ xLeft, proption, readOnly }) => {
+        {({ xLeft, proption, readOnly, ontimeColor, timeoutColor }) => {
           const deltaX = xLeft;
           const transform = `translate(${deltaX} ,0)`;
-          const width = initialWidth / proption;
-          const x = initialX / proption;
+          const calcWidth = time => {
+            return time / dayMillisedons * xAxisWidth / proption;
+          };
+
+          const usedWidth = calcWidth(timeWidth);
+          const avarageWidth = calcWidth(avarageValue);
+          const x = calcWidth(timeStartPoint);
+
           const height = readOnly ? 2 : h;
           const y = i * h;
+          const color = avarageWidth > usedWidth ? ontimeColor : timeoutColor;
+
+          let awaitWidth;
+          const awaitStart = dateToMilliseconds(awaitStartTime);
+          const awaitEnd = dateToMilliseconds(usedTime.startTime);
+
+          if (awaitStartTime === -1 || awaitStart > awaitEnd) {
+            awaitWidth = 0;
+          } else {
+            console.log(awaitStart, awaitEnd);
+            awaitWidth = calcWidth(awaitEnd - awaitStart);
+            console.log(awaitWidth);
+          }
+
           return (
             <Comp
               x={x}
+              color={color}
               transform={transform}
-              width={width}
+              usedWidth={usedWidth}
+              avarageWidth={avarageWidth}
               h={height}
               y={y}
               dataItem={dataItem}
+              awaitWidth={awaitWidth}
               {...rest}
             />
           );
@@ -138,35 +158,91 @@ const calcHoc = Comp => {
   return React.forwardRef(forwardRef);
 };
 
-const TaskItems = calcHoc(({ dataItem, x, y, width, h, i }) => {
-  return (
+const TaskItems = calcHoc(
+  ({
+    dataItem,
+    x,
+    y,
+    renderHoverComponent,
+    awaitWidth,
+    avarageWidth,
+    usedWidth,
+    color,
+    h,
+    i
+  }) => {
+    const usedY = y + h * 2 / 3;
+    const usedH = h / 4;
+    return (
+      <g>
+        <text y={y + 12} fontSize={10} x={x} height={h / 3}>
+          {dataItem.name}
+        </text>
+        <rect x={x} y={y + h / 3} width={avarageWidth} height={h / 4} />
+        <rect x={x} y={usedY} width={usedWidth} height={usedH} />
+        <Await
+          color={color}
+          width={awaitWidth}
+          height={usedH}
+          endX={x}
+          y={usedY}
+          renderHoverComponent={renderHoverComponent}
+        />
+      </g>
+    );
+  }
+);
+
+const Await = ({ color, width, height, endX, y, renderHoverComponent }) => {
+  const Container = renderHoverComponent(ReactGantt.Types.AWAIT);
+
+  const x1 = endX - width,
+    y1 = y,
+    x2 = x1 + width,
+    y2 = y;
+  const children = (
     <g>
-      <text y={y + 12} fontSize={12} x={x} height={h / 3}>
-        {dataItem.name}
-      </text>
-      <rect x={x} y={y + h / 3} width={width} height={h / 3} />
+      {width > 0 && (
+        <line
+          strokeWidth="0.5"
+          strokeDasharray={[10, 3]}
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={"red"}
+        />
+      )}
     </g>
   );
-});
+  return React.cloneElement(Container, null, children);
+};
 
 const Datas = () => {
   return (
     <GanttContext.Consumer>
-      {({ data, lineHeight: h, xAxisWidth }) => {
+      {({ data, lineHeight: h, xAxisWidth, ...rest }) => {
         const m = moment(data[0].usedTime.startTime).startOf("day");
         const initialTime = m.valueOf();
-        return data.map((dataItem, i) => {
-          //  将 g 封入一个 Component 中, 只对 StateConsumer 中的数据变化反应
-          return (
-            <TaskItems
-              key={i}
-              h={h}
-              xAxisWidth={xAxisWidth}
-              dataItem={dataItem}
-              i={i}
-            />
+        const ary = [];
+        for (let i = 0, length = data.length; i < length; i++) {
+          const dataItem = data[i];
+          const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
+          ary.push(
+            <React.Fragment key={i}>
+              <TaskItems
+                key={i}
+                h={h}
+                xAxisWidth={xAxisWidth}
+                dataItem={dataItem}
+                awaitStartTime={awaitStartTime}
+                i={i}
+                {...rest}
+              />
+            </React.Fragment>
           );
-        });
+        }
+        return ary;
       }}
     </GanttContext.Consumer>
   );
@@ -202,13 +278,17 @@ class Chart extends React.PureComponent {
 export default class ReactGantt extends React.PureComponent {
   static defaultProps = {
     data: [],
-    hoverComponent: () => <React.Fragment />,
+    renderHoverComponent: () => <React.Fragment />,
     timeoutColor: "#FFE7BA",
     ontimeColor: "#52C41A",
     lineHeight: 50,
     yAxisWidth: 100,
     xAxisWidth: 750,
     xAxisHeight: 1000
+  };
+  static Types = {
+    AWAIT: "__AWAIT",
+    TASK: "__TASK"
   };
   constructor(props) {
     super(props);
@@ -218,11 +298,13 @@ export default class ReactGantt extends React.PureComponent {
     xLeft: -1 * 0
   };
   render() {
-    const { xAxisHeight, ...rest } = this.props;
+    const { xAxisHeight, timeoutColor, ontimeColor, ...rest } = this.props;
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     return (
       <GanttContext.Provider value={{ ...rest }}>
-        <GanttStateContext.Provider value={{ ...this.state }}>
+        <GanttStateContext.Provider
+          value={{ ...this.state, ontimeColor, timeoutColor }}
+        >
           <div>
             <div className="chart-container" style={{ height: xAxisHeight }}>
               <Chart {...this.props} />
