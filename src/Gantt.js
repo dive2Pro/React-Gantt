@@ -7,10 +7,11 @@ const GanttStateContext = React.createContext({});
 function callAll(...fns) {
   return function eventHandle(...args) {
     fns.filter(Boolean).forEach(fn => {
-      fn.apply(null, args);
+      fn.apply(this, args);
     });
   };
 }
+
 const YAxis = () => {
   return (
     <GanttContext.Consumer>
@@ -76,7 +77,7 @@ const HelpRects = () => {
                   );
                 }
               }
-              return rects;
+              return <g className="help-rects"> {rects}</g>;
             }}
           </GanttStateContext.Consumer>
         );
@@ -112,7 +113,16 @@ const getUsedPositions = (usedTime, initialTime) => {
 };
 
 const calcHoc = Comp => {
-  const Wrapper = ({ dataItem, xAxisWidth, h, i, awaitStartTime, ...rest }) => {
+  const Wrapper = ({
+    dataItem,
+    xAxisWidth,
+    h,
+    i,
+    awaitStartTime,
+    readOnly,
+    minLineHeight,
+    ...rest
+  }) => {
     const { usedTime, avarageValue } = dataItem;
 
     return (
@@ -120,7 +130,6 @@ const calcHoc = Comp => {
         {({
           xLeft,
           proption,
-          readOnly,
           ontimeColors,
           timeoutColors,
           dateTime,
@@ -131,7 +140,11 @@ const calcHoc = Comp => {
             dateTime
           );
 
-          const deltaX = xLeft;
+          const fontSize = readOnly ? 0 : 12;
+          const height = readOnly ? minLineHeight : h;
+          const deltaX = readOnly ? 0 : xLeft;
+          proption = readOnly ? 1 : proption;
+
           const transform = `translate(${deltaX} ,0)`;
           function calcWidth(time) {
             return time / dayMillisedons * xAxisWidth / proption;
@@ -141,8 +154,7 @@ const calcHoc = Comp => {
           const avarageWidth = calcWidth(avarageValue);
           const x = calcWidth(timeStartPoint);
 
-          const height = readOnly ? 2 : h;
-          const y = i * h;
+          const y = i * height;
           const color = avarageWidth > usedWidth ? ontimeColors : timeoutColors;
 
           let awaitWidth;
@@ -168,6 +180,7 @@ const calcHoc = Comp => {
               awaitWidth={awaitWidth}
               usedTime={usedTime}
               calcWidth={calcWidth}
+              fontSize={fontSize}
               {...restState}
               {...rest}
             />
@@ -198,6 +211,7 @@ const TaskItems = calcHoc(
     h,
     i,
     transform,
+    fontSize,
     ...rest
   }) => {
     const usedY = y + h * 2 / 3;
@@ -205,8 +219,8 @@ const TaskItems = calcHoc(
 
     const { avarage, used, highlight } = color;
     return (
-      <g transform={transform}>
-        <text y={y + 12} fontSize={10} x={x} height={h / 3}>
+      <g fontSize={fontSize} transform={transform}>
+        <text y={y + 12} x={x} height={h / 3}>
           {dataItem.name}
         </text>
         <rect
@@ -232,6 +246,7 @@ const TaskItems = calcHoc(
           <Await
             color={awaitColor}
             width={awaitWidth}
+            fontSize={fontSize}
             height={usedH}
             endX={x}
             y={usedY}
@@ -311,6 +326,7 @@ const Await = ({
   width,
   height,
   endX,
+  fontSize,
   y,
   renderHoverComponent,
   dataItem
@@ -320,7 +336,6 @@ const Await = ({
     y1 = y,
     x2 = x1 + width,
     y2 = y;
-  const fontSize = 12;
   const str = "等待中";
 
   const children = (
@@ -353,7 +368,7 @@ const Await = ({
         />
         <symbol id="_wait_text" viewBox="0 0 100 50">
           <rect x={0} y={-6} fill={"white"} width={50} height={2} />
-          <text fill={"black"} x={6} y={0} fontSize={fontSize}>
+          <text fill={"black"} x={6} y={0}>
             {str}
           </text>
         </symbol>
@@ -370,31 +385,28 @@ const Await = ({
   return React.cloneElement(Container, null, children);
 };
 
-const Datas = () => {
+const Datas = ({ readOnly }) => {
   return (
     <GanttContext.Consumer>
       {({ data, lineHeight: h, xAxisWidth, ...rest }) => {
-        const m = moment(data[0].usedTime.startTime).startOf("day");
-        const initialTime = m.valueOf();
         const ary = [];
         for (let i = 0, length = data.length; i < length; i++) {
           const dataItem = data[i];
           const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
           ary.push(
-            <React.Fragment key={i}>
-              <TaskItems
-                key={i}
-                h={h}
-                xAxisWidth={xAxisWidth}
-                dataItem={dataItem}
-                awaitStartTime={awaitStartTime}
-                i={i}
-                {...rest}
-              />
-            </React.Fragment>
+            <TaskItems
+              key={i}
+              h={h}
+              xAxisWidth={xAxisWidth}
+              dataItem={dataItem}
+              awaitStartTime={awaitStartTime}
+              i={i}
+              readOnly={readOnly}
+              {...rest}
+            />
           );
         }
-        return ary;
+        return <g id={`tasks-${readOnly ? String("readOnly") : ""}`}>{ary}</g>;
       }}
     </GanttContext.Consumer>
   );
@@ -405,7 +417,8 @@ class XAxis extends React.Component {
     return (
       <React.Fragment>
         <HelpRects />
-        <Datas />
+        <defs>{React.createElement(Datas, { readOnly: true })}</defs>
+        {React.createElement(Datas)}
       </React.Fragment>
     );
   }
@@ -445,33 +458,26 @@ export default class ReactGantt extends React.PureComponent {
     lineHeight: 50,
     yAxisWidth: 100,
     xAxisWidth: 1150,
-    xAxisHeight: 200
+    xAxisHeight: 200,
+    minLineHeight: 2
   };
   static Types = {
     AWAIT: "__AWAIT",
     TASK: "__TASK",
     HIGHLIGHT: "__HIGHT_LIGHT"
   };
-  constructor(props) {
-    super(props);
-  }
+
   state = {
     proption: 1,
     xLeft: -1 * 0,
     dateTime: getDayMilliseconds(this.props.date)
   };
-  handleInputProptionChange = ({ target: { value } }) => {
-    // value is float
-    this.setState({
-      proption: value
-    });
-  };
-  handleInputXChange = ({ target: { value } }) => {
-    this.setState({
-      xLeft: value * -1
-    });
-  };
 
+  handleChange = args => {
+    this.setState({
+      ...args
+    });
+  };
   render() {
     const {
       xAxisHeight,
@@ -492,30 +498,18 @@ export default class ReactGantt extends React.PureComponent {
           }}
         >
           <div>
-            Proption:
-            <input
-              type="range"
-              max="1"
-              min="0.01"
-              step="0.01"
-              defaultValue="1"
-              onChange={this.handleInputProptionChange}
-            />
-            X:
-            <input
-              type="range"
-              max={rest.xAxisWidth}
-              min="0"
-              defaultValue="0"
-              onChange={this.handleInputXChange}
-            />
             <div className="chart-container" style={{ height: xAxisHeight }}>
               <Chart {...this.props} />
             </div>
             <div>
               <Graduation {...rest} {...this.state} />
             </div>
-            <div>{/*slide*/}</div>
+            {/*slide*/}
+            <Slide
+              {...rest}
+              {...this.state}
+              onStateChange={this.handleChange}
+            />
           </div>
         </GanttStateContext.Provider>
       </GanttContext.Provider>
@@ -523,18 +517,128 @@ export default class ReactGantt extends React.PureComponent {
   }
 }
 
+class Slide extends React.PureComponent {
+  static defaultProps = {
+    stateReducer: (state, change) => change,
+    onStateChange: () => {}
+  };
+
+  state = {
+    proption: this.props.proption,
+    xLeft: this.props.xLeft
+  };
+
+  isControlled = prop => this.props[prop] !== undefined;
+
+  /**
+   * 检查 state, 如果 props 中有该 field, 使用 props 的值
+   * @param (object ) state
+   * @return merged with props
+   */
+  getState = (state = this.state) => {
+    return Object.entries(state).reduce((newObj, [key, value]) => {
+      if (this.isControlled(key)) {
+        newObj[key] = this.props[key];
+      } else {
+        newObj[key] = value;
+      }
+      return newObj;
+    }, {});
+  };
+
+  internalSetState = (update, callback) => {
+    let allChanges;
+    this.setState(
+      state => {
+        const combined = this.getState(state);
+        const changes =
+          typeof update === "function" ? update(combined) : update;
+
+        // 外部回调的 state
+        allChanges = this.props.stateReducer(combined, changes) || {};
+        // 过滤 type,
+        const { type, ...onlyChanges } = allChanges;
+
+        // 需要过滤掉 props 的 field
+        const nonControlledChanges = Object.keys(onlyChanges).reduce(
+          (newObject, key) => {
+            if (!this.isControlled(key)) {
+              if (onlyChanges.hasOwnProperty(key)) {
+                newObject[key] = onlyChanges[key];
+              } else {
+                newObject[key] = combined[key];
+              }
+            }
+            return newObject;
+          },
+          {}
+        );
+
+        return Object.keys(nonControlledChanges || {}).length
+          ? nonControlledChanges
+          : null;
+      },
+      () => {
+        this.props.onStateChange(allChanges);
+        callback && callback();
+      }
+    );
+  };
+
+  handleInputProptionChange = ({ target: { value } }) => {
+    // value is float
+    this.internalSetState({
+      proption: value
+    });
+  };
+
+  handleInputXChange = ({ target: { value } }) => {
+    this.internalSetState({
+      xLeft: value * -1
+    });
+  };
+
+  render() {
+    const { xAxisWidth, yAxisWidth, minLineHeight, data } = this.props;
+    let h = minLineHeight * data.length;
+    const { proption } = this.getState();
+    return (
+      <div className="bottom-slide">
+        Proption:
+        <input
+          type="range"
+          max="1"
+          min="0.01"
+          step="0.01"
+          defaultValue="1"
+          onChange={this.handleInputProptionChange}
+        />
+        X:
+        <input
+          type="range"
+          max={xAxisWidth}
+          min="0"
+          defaultValue="0"
+          onChange={this.handleInputXChange}
+        />
+        <svg height={h} width={xAxisWidth + yAxisWidth}>
+          <use xlinkHref="#tasks-readOnly" x={yAxisWidth} y={0} />
+        </svg>
+        <div className="_slide" />
+      </div>
+    );
+  }
+}
 const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
   // 每一格子的宽度
   const width = xAxisWidth / columns / proption;
   const h = 12;
   // 如果 每个格子的宽度 < 某个值, 那么 偶数位置的column 则不绘制
-  function filterOdd() {
-    return true;
-  }
+
   const m = moment(dateTime);
   let str, props;
   const fontSize = 12;
-  const children = new Array(columns)
+  const children = new Array(columns + 1)
     .fill(0)
     // .filter(filterOdd)
     .map((_, i) => {
@@ -550,23 +654,23 @@ const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
         x: yAxisWidth + i * width - strWidth / 4,
         key: str,
         children: str,
-        stroke: "black",
         y: h,
-        strokeWidth: "0.1",
         fontSize
       };
 
-      if (i % 2 == 1 && width > strWidth) {
+      if (i % 2 === 1 && width > strWidth) {
         // console.log(i);
         return <text {...props} />;
-      } else if (i % 2 == 0) {
+      } else if (i % 2 === 0) {
         return <text {...props} />;
+      } else {
+        return null;
       }
     })
     .filter(Boolean);
 
   return (
-    <svg height={h} width={xAxisWidth + yAxisWidth}>
+    <svg height={h} width={xAxisWidth + yAxisWidth + 50}>
       {children}
     </svg>
   );

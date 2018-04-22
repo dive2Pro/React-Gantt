@@ -13,7 +13,7 @@ const DATA = [
     id: 1, // ...
     name: "哈斯卡", // 展示名, 展示在最高层
     usedTime: {
-      startTime: "2018-4-21, 03:55", // 微秒
+      startTime: "2018-4-21, 0:0", // 微秒
       endTime: "2018-4-21, 6: 22" // 微秒
     },
     YAxis: "上路", // 任务名
@@ -46,10 +46,10 @@ const DATA = [
       {
         time: DATE + "10:30", // 微秒
         onClick: e => {
-          console.log(e);
+          e.persist();
+          console.log("hello");
         },
         getHighLightProps(data) {
-          console.log(data);
           return {
             style: { cursor: "pointer" }
           };
