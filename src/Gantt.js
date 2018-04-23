@@ -1,5 +1,5 @@
 import React from "react";
-import Slide from "./components/Slide";
+import Slide from "./components/Slider";
 import Graduation from "./components/Graduation";
 import ChartSvg from "./components/ChartSvg";
 import {
@@ -9,7 +9,7 @@ import {
   Types,
   DEFAULT_EMPTYELEMENT
 } from "./components/constants";
-import P from 'prop-types'
+import P from "prop-types";
 
 import "./style/gantt.css";
 import { WSATYPE_NOT_FOUND } from "constants";
@@ -21,18 +21,14 @@ function getDayMilliseconds(date) {
   return initialTime;
 }
 
-const StringOrNumberType = P.oneOfType([
-  P.string,
-  P.number
-])
-const ColorType =  P.shape({
+const StringOrNumberType = P.oneOfType([P.string, P.number]);
+const ColorType = P.shape({
   used: P.string,
   avarage: P.string,
   highlight: P.string
-})
+});
 
 export default class ReactGantt extends React.PureComponent {
-  
   static defaultProps = {
     data: [],
     renderHoverComponent: DEFAULT_EMPTYELEMENT,
@@ -56,13 +52,14 @@ export default class ReactGantt extends React.PureComponent {
   static Types = Types;
   initialState = {
     proption: this.props.proption || 0.5,
-    xLeft:  this.props.startX || 200,
+    xLeft: this.props.startX || 200,
     dateTime: getDayMilliseconds(this.props.date),
     slideHeight: 30
   };
   state = this.initialState;
 
   handleChange = args => {
+    console.log(args)
     this.setState({
       ...Object.keys(args)
         .filter(key => {
@@ -123,23 +120,27 @@ export default class ReactGantt extends React.PureComponent {
 }
 
 ReactGantt.propTypes = {
-  data: P.arrayOf(P.shape({
-    id: P.string,
-    name: P.string,
-    usedTime: P.shape({
-      startTime:StringOrNumberType,
-      endTime: StringOrNumberType})
-    ,
-    YAxis:P.string,
-    highlightPoints: P.arrayOf(P.shape({
-      time: StringOrNumberType,
-      content: P.any
-    })),
-    avarageValue: StringOrNumberType
-  })).isRequired,
+  data: P.arrayOf(
+    P.shape({
+      id: P.string,
+      name: P.string,
+      usedTime: P.shape({
+        startTime: StringOrNumberType,
+        endTime: StringOrNumberType
+      }),
+      YAxis: P.string,
+      highlightPoints: P.arrayOf(
+        P.shape({
+          time: StringOrNumberType,
+          content: P.any
+        })
+      ),
+      avarageValue: StringOrNumberType
+    })
+  ).isRequired,
   renderHoverComponent: P.func,
-  timeoutColors:ColorType,
-  ontimeColors:ColorType,
+  timeoutColors: ColorType,
+  ontimeColors: ColorType,
   awaitColor: P.string,
   lineHeight: StringOrNumberType,
   yAxisWidth: StringOrNumberType,
@@ -147,4 +148,4 @@ ReactGantt.propTypes = {
   minLineHeight: StringOrNumberType,
   proption: StringOrNumberType.isRequired,
   startX: StringOrNumberType.isRequired
-}
+};

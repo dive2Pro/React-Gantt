@@ -244,3 +244,11 @@
 4.  造成这种现象的主要的问题是**过度渲染**. 在现在的代码中, 渲染的复杂度是 根据 `HelpRects`的 **`O(n*column^data.length)`**. 
     但实际上, 达到同样的目的 只需要 渲染 `column + data.length` 条线段即可达到目的
     
+
+# 代码重构
+1.  Slider
+  - 单一原则:
+    1.  抽出 Dragger 组件, 处理 `drag` 事件, 处理回调
+    2.  抽出 Dragging 组件, 处理 Dragger 组件中的回调出来的数值并处理出 `startPercent` 和 `percent`
+      - abstract props :
+    1. 

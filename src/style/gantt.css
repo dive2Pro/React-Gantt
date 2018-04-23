@@ -1,38 +1,3 @@
-html {
-  box-sizing: border-box;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: inherit;
-}
-* {
-}
-
-img[alt*=".jpg"],
-img[alt*=".jpeg"],
-img[alt*=".gif"],
-img[alt*=".webp"],
-img[alt*=".png"],
-img[alt*="Photographer:"],
-img[alt*="Image of:"],
-img[alt*="Photo of:"],
-img:not([alt$="."]) {
-  outline: 5px solid orange;
-}
-
-img,
-video {
-  max-width: 100%;
-  height: auto;
-}
-
-::selection {
-  color: #000;
-  background: #fbd404;
-}
-
 .clearfix::after {
   content: "";
   display: table;
@@ -46,6 +11,7 @@ video {
   position: absolute;
   top: 0;
   background: transparent;
+  display: flex;
 }
 ._slide-container ._slide {
   position: relative;
@@ -77,10 +43,10 @@ video {
 }
 
 ._stretch.left svg {
-  left: -6px;
+  left: -13px;
 }
 ._stretch.right svg {
-  left: 6px;
+  left: 13px;
 }
 .bottom-slide ._slide {
   display: flex;

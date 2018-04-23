@@ -96,7 +96,7 @@ class App extends React.PureComponent {
             .concat(DATA)
             .concat(DATA)
         )}
-        proption={0.5}
+        proption={0.02}
         date={"2018-4-21"}
         renderHoverComponent={(type, dataItem, ...rest) => {
           switch (type) {
