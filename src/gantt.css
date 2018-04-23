@@ -60,15 +60,27 @@ video {
   content: " ";
   pointer-events: none;
 }
+._stretch {
+  /* overflow: hidden; */
+}
 ._stretch.right,
 ._stretch.left {
   width: 13px;
   height: 100%;
-  background: lightblue;
-  background-size: auto 30px;
   cursor: ew-resize;
 }
-._stretch.right {
+._stretch.right svg,
+._stretch.left svg {
+  position: relative;
+  height: 100%;
+  width: inherit;
+}
+
+._stretch.left svg {
+  left: -6px;
+}
+._stretch.right svg {
+  left: 6px;
 }
 .bottom-slide ._slide {
   display: flex;
@@ -76,6 +88,7 @@ video {
 
 .bottom-slide ._slide ._move {
   flex: 1;
-  background: #615a5a;
-  opacity: 0.3;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 0 -13px;
+  cursor: col-resize;
 }

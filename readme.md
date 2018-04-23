@@ -237,3 +237,8 @@
 2.  dragging handler 花费时间过多, 即使是在 `build` 的环境中 依然会很卡
     - 代码中, 目前的操作会导致的更新, 主要是 `XAxis` 中的 每一个svg 图形的 `style` , 也就是 `transform` 和 `width`.
     - 目的是减少 rerender 的操作, 可通过 `throttle` 或者 [更新 style element](https://github.com/atlassian/react-beautiful-dnd/blob/0fb4dc75ea9b625f64cac48602635ac2822f26ec/src/view/style-marshal/style-marshal.js) 等方式
+3.  当前使用的方式是 `throttle` , 遇到的问题是这个 `间隔值` 并不好设置. 而且在 `data`变化到比较大的时候, 每一次都要 rerender`o(data.length * N)`次, 这会导致 很严重的 性能问题.
+    考虑 2 种方式去解决: 
+      1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
+      2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+    

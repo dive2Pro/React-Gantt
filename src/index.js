@@ -96,7 +96,17 @@ const DATA = [
 
 class App extends React.PureComponent {
   render() {
-    return <Gantt data={DATA} date={"2018-4-21"} />;
+    return (
+      <Gantt
+        data={DATA.concat(
+          DATA.concat(DATA)
+            .concat(DATA)
+            .concat(DATA)
+            .concat(DATA)
+        )}
+        date={"2018-4-21"}
+      />
+    );
   }
 }
 
