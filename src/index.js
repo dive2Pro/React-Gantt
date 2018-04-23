@@ -96,10 +96,10 @@ class App extends React.PureComponent {
             .concat(DATA)
             .concat(DATA)
         )}
-        proption={1}
+        proption={0.5}
+        startX={150}
         date={"2018-4-21"}
         renderHoverComponent={(type, dataItem, ...rest) => {
-          console.log(rest);
           switch (type) {
             case Gantt.Types.HIGHLIGHT:
               return (

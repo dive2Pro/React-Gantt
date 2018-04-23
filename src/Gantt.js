@@ -42,7 +42,7 @@ export default class ReactGantt extends React.PureComponent {
   static Types = Types;
   initialState = {
     proption: this.props.proption || 0.5,
-    xLeft: -1 * 0,
+    xLeft:  this.props.startX || 200,
     dateTime: getDayMilliseconds(this.props.date),
     slideHeight: 30
   };

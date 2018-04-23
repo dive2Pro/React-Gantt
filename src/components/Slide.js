@@ -112,7 +112,6 @@ export default class Slide extends React.PureComponent {
   handleXLeftChange = offset => {
     const { xAxisWidth } = this.props;
     const { leftX, rightX, width, MIN_WIDTH } = this.getState();
-
     let deltaWidth = leftX + offset;
     if (deltaWidth <= 0) {
       deltaWidth = 0;
@@ -249,20 +248,20 @@ export class StretchPart extends React.Component {
     this.handleDraging(e);
   };
   handleDraging = e => {
-    // e.persist();
+    e.persist();
     const pageX = e.pageX;
-    if (this.startX) {
+    if (this.startX && pageX) {
       const diff = pageX - this.startX;
-      if (Math.abs(diff) > 500 || diff === 0) {
+      if (diff === 0) {
         return;
       }
-      this.props.onChange(diff);
       this.startX = pageX;
+      this.props.onChange(diff);
     }
   };
 
   handleDragEnd = e => {
-    console.log("-end");
+    e.persist()
     this.startX = null;
     document.body.removeChild(tempD);
   };
