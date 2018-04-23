@@ -15,9 +15,9 @@ const TaskItems = calcHoc(
     color,
     awaitColor,
     h,
-    i,
     transform,
     fontSize,
+    xLeft,
     ...rest
   }) => {
     const usedY = y + h * 2 / 3;
@@ -29,17 +29,30 @@ const TaskItems = calcHoc(
       dataItem,
       used
     ]);
+    let textTranslatex = 0
+
     if (!React.isValidElement(HoverContainer)) {
       HoverContainer = <DEFAULT_EMPTYELEMENT />;
     }
+    if (xLeft > x) {
+      const textMaxTranslatex = Math.max(avarageWidth, usedWidth)
+      textTranslatex = xLeft - x
+      if (textTranslatex > textMaxTranslatex) {
+        textTranslatex = 0
+      }
+    }
+
+    const textPlusTransform = `translate(${textTranslatex} , 0)`
 
     HoverContainer = React.cloneElement(
       HoverContainer,
       null,
       <g>
-        <text y={y + 12} x={x} height={h / 3}>
+        <g transform={textPlusTransform}>
+        <text  y={y + 12} x={x} height={h / 3}>
           {dataItem.name}
         </text>
+        </g>
         <rect
           fill={avarage}
           x={x}

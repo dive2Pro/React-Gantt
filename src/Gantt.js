@@ -94,7 +94,7 @@ export default class ReactGantt extends React.PureComponent {
             awaitColor
           }}
         >
-          <div>
+          <React.Fragment>
             <div
               className="chart-container"
               style={{
@@ -112,7 +112,7 @@ export default class ReactGantt extends React.PureComponent {
                 <use xlinkHref="#tasks-readOnly" x={yAxisWidth} y={0} />
               </svg>
             </Slide>
-          </div>
+          </React.Fragment>
         </GanttStateContext.Provider>
       </GanttContext.Provider>
     );

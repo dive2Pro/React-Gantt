@@ -37,13 +37,13 @@ const calcHoc = Comp => {
     return (
       <GanttStateContext.Consumer>
         {({
-          xLeft,
           proption,
           ontimeColors,
           timeoutColors,
           dateTime,
           transform,
           slideHeight,
+          xLeft,
           ...restState
         }) => {
           return (
@@ -55,7 +55,6 @@ const calcHoc = Comp => {
                 );
                 const fontSize = readOnly ? 0 : 12;
                 const height = readOnly ? slideHeight / dataLength : h;
-                // const deltaX = readOnly ? 0 : xLeft;
                 transform = readOnly ? "" : transform;
                 proption = readOnly ? 1 : proption;
 
@@ -96,6 +95,7 @@ const calcHoc = Comp => {
                     calcWidth={calcWidth}
                     fontSize={fontSize}
                     transform={transform}
+                    xLeft={xLeft / proption}
                     {...rest}
                     renderHoverComponent={renderHoverComponent}
                   />

@@ -4,7 +4,6 @@ import { columns, moment } from "./constants";
 const Graduation = ({
   xAxisWidth,
   yAxisWidth,
-  xLeft,
   transform,
   proption,
   dateTime

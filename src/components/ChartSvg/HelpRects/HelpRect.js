@@ -10,7 +10,7 @@ export default class HelpRect extends React.Component {
     const { r, c, h, originalWidth } = this.props;
     return (
       <GanttStateContext.Consumer>
-        {({ xLeft, proption, transform }) => {
+        {({ proption, transform }) => {
           let y = h * r;
           const width = originalWidth / proption;
           let x = width * c;

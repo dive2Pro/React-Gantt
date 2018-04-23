@@ -21,7 +21,7 @@ class HelpRects extends React.Component {
         {({ lineHeight: h, data, xAxisWidth, xAxisHeight }) => {
           return (
             <GanttStateContext.Consumer>
-              {({ xLeft, proption, transform }) => {
+              {({ proption, transform }) => {
                 const rows = data.length;
                 const originalWidth = xAxisWidth / columns;
                 let rects = [];
