@@ -61,8 +61,7 @@ class HelpRect extends React.Component {
     const { r, c, h, originalWidth } = this.props;
     return (
       <GanttStateContext.Consumer>
-        {({ xLeft, proption }) => {
-          const transform = `translate( ${xLeft * -1}, 0)`;
+        {({ xLeft, proption, transform }) => {
           let y = h * r;
           const width = originalWidth / proption;
           let x = width * c;
@@ -100,16 +99,15 @@ class HelpRects extends React.Component {
     // console.log(xAxisWidth);
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < columns; c++) {
-        rects
-          .push
-          // <HelpRect
-          //   key={r + " - " + c}
-          //   originalWidth={xAxisWidth / columns}
-          //   r={r}
-          //   c={c}
-          //   h={h}
-          // />
-          ();
+        rects.push(
+          <HelpRect
+            key={r + " - " + c}
+            originalWidth={xAxisWidth / columns}
+            r={r}
+            c={c}
+            h={h}
+          />
+        );
       }
     }
     return <g className="help-rects"> {rects}</g>;
@@ -165,6 +163,7 @@ const calcHoc = Comp => {
           ontimeColors,
           timeoutColors,
           dateTime,
+          transform,
           ...restState
         }) => {
           const { timeStartPoint, timeWidth } = getUsedPositions(
@@ -175,8 +174,8 @@ const calcHoc = Comp => {
           const fontSize = readOnly ? 0 : 12;
           const height = readOnly ? minLineHeight : h;
           const deltaX = readOnly ? 0 : xLeft;
+          transform = readOnly ? "" : transform;
           proption = readOnly ? 1 : proption;
-          const transform = `translate(${deltaX * -1} ,0)`;
 
           function calcWidth(time) {
             return time / dayMillisedons * xAxisWidth / proption;
@@ -201,7 +200,6 @@ const calcHoc = Comp => {
             <Comp
               x={x}
               color={color}
-              transform={transform}
               usedWidth={usedWidth}
               avarageWidth={avarageWidth}
               h={height}
@@ -211,6 +209,7 @@ const calcHoc = Comp => {
               usedTime={usedTime}
               calcWidth={calcWidth}
               fontSize={fontSize}
+              transform={transform}
               {...restState}
               {...rest}
             />
@@ -418,9 +417,8 @@ const Await = ({
 const Datas = ({ readOnly }) => {
   return (
     <GanttContext.Consumer>
-      {({ data, lineHeight: h, xAxisWidth, ...rest }) => {
+      {({ data, lineHeight: h, xAxisWidth, transform, ...rest }) => {
         const ary = [];
-        console.log(" datas ");
         for (let i = 0, length = data.length; i < length; i++) {
           const dataItem = data[i];
           const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
@@ -509,14 +507,18 @@ export default class ReactGantt extends React.PureComponent {
   };
 
   state = {
-    proption: 1,
+    proption: 0.5,
     xLeft: -1 * 0,
     dateTime: getDayMilliseconds(this.props.date)
   };
 
-  handleChange = ({ xLeft, proption }) => {
+  handleChange = args => {
     this.setState({
-      xLeft
+      ...Object.keys(args)
+        .filter(key => {
+          return this.state.hasOwnProperty(key);
+        })
+        .reduce((newObj, key) => ((newObj[key] = args[key]), newObj), {})
     });
   };
 
@@ -530,11 +532,15 @@ export default class ReactGantt extends React.PureComponent {
     } = this.props;
 
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
+    const { xLeft, proption } = this.state;
+    const transform = `translate( ${xLeft * -1 / proption}, 0)`;
+
     return (
       <GanttContext.Provider value={this.props}>
         <GanttStateContext.Provider
           value={{
             ...this.state,
+            transform,
             ontimeColors,
             timeoutColors,
             awaitColor
@@ -542,10 +548,10 @@ export default class ReactGantt extends React.PureComponent {
         >
           <div>
             <div className="chart-container" style={{ height: xAxisHeight }}>
-              <Chart {...this.props} {...this.state} />
+              <Chart {...this.props} {...this.state} transform={transform} />
             </div>
             <div>
-              <Graduation {...rest} {...this.state} />
+              <Graduation {...rest} {...this.state} transform={transform} />
             </div>
             {/*slide*/}
             <Slide
@@ -572,12 +578,21 @@ class Slide extends React.PureComponent {
     super(props);
     // this.handleXLeftChange = throttle(this.handleXLeftChange, 5 , true)
   }
-  state = {
-    proption: this.props.proption,
-    xLeft: this.props.xLeft
+
+  getDragPosition = ({ proption, xLeft, xAxisWidth, yAxisWidth }) => {
+    let width = xAxisWidth + yAxisWidth;
+    // const { proption, xLeft } = this.getState();
+    width = parseFloat(proption) * xAxisWidth;
+    let rightX = xAxisWidth - xLeft - width;
+
+    return {
+      leftX: xLeft,
+      rightX,
+      width
+    };
   };
 
-  isControlled = prop => this.props[prop] !== undefined;
+  isControlled = prop => this.props[prop] != undefined;
 
   /**
    * 检查 state, 如果 props 中有该 field, 使用 props 的值
@@ -593,6 +608,12 @@ class Slide extends React.PureComponent {
       }
       return newObj;
     }, {});
+  };
+
+  state = {
+    proption: this.props.proption,
+    xLeft: this.props.xLeft,
+    ...this.getDragPosition(this.props)
   };
 
   internalSetState = (update, callback) => {
@@ -618,10 +639,12 @@ class Slide extends React.PureComponent {
                 newObject[key] = combined[key];
               }
             }
+
             return newObject;
           },
           {}
         );
+        // console.log(nonControlledChanges, ' -=-=-=', onlyChanges, ' === ', combined, changes)
 
         return Object.keys(nonControlledChanges || {}).length
           ? nonControlledChanges
@@ -629,6 +652,7 @@ class Slide extends React.PureComponent {
       },
       () => {
         this.props.onStateChange(allChanges);
+        console.log(this.state);
         callback && callback();
       }
     );
@@ -652,66 +676,89 @@ class Slide extends React.PureComponent {
   };
 
   handleXLeftChange = offset => {
-    // 修改 xLeft 和 proption
-
-    // offset =  offset;
-
     const { xAxisWidth } = this.props;
-    const { xLeft, proption } = this.getState();
-    const prevWidth = parseFloat(proption) * xAxisWidth;
+    const { width, leftX, proption, rightX } = this.getState();
+    let deltaWidth = leftX + offset;
 
-    let deltaWidth = xLeft + offset;
+    if (deltaWidth <= 0) {
+      deltaWidth = 0;
+    }
+    const currentWidth = xAxisWidth - rightX - deltaWidth;
+    const currentProption = currentWidth / width * proption;
+    this.internalSetState({
+      xLeft: deltaWidth,
+      width: currentWidth,
+      proption: currentProption,
+      leftX: deltaWidth
+    });
+  };
 
+  handleXRightChange = offset => {
+    const { xAxisWidth } = this.props;
+    const { width, rightX, proption, leftX } = this.getState();
+    let deltaWidth = rightX - offset;
     if (deltaWidth < 0) {
       deltaWidth = 0;
-    } else {
-      // deltaWidth = offset
     }
-
-    const currentWidth = prevWidth - deltaWidth;
-    const currentProption = currentWidth / xAxisWidth;
+    const currentWidth = xAxisWidth - deltaWidth - leftX;
+    const currentProption = currentWidth / width * proption;
 
     this.internalSetState({
-      xLeft: deltaWidth
-      // proption: currentProption
+      proption: currentProption,
+      currentWidth,
+      rightX: deltaWidth
     });
-    // this.props.onStateChange({xLeft: deltaWidth})
   };
-  handleXRightChange = offset => {
-    // 修改 proption
+
+  handleSlideMove = offset => {
+    const { width, leftX, rightX } = this.getState();
+    const { xAxisWidth } = this.props;
+    console.log(width - xAxisWidth);
+    if (width + 13 === xAxisWidth) {
+      return;
+    }
+    let currentLeftX = leftX + offset;
+
+    if (currentLeftX < 0) {
+      currentLeftX = 0;
+      offset = 0;
+    }
+    if (rightX == 0 && offset > 0) {
+      console.log(offset, rightX, leftX);
+      currentLeftX = xAxisWidth - width;
+    }
+
+    // console.log(
+    let currentRightX = (currentRightX = xAxisWidth - currentLeftX - width);
+    if (currentRightX <= 0) {
+      // currentLeftX = leftX + currentRightX;
+
+      currentRightX = 0;
+    }
+    console.log(currentLeftX, currentRightX, width, xAxisWidth);
+
+    this.internalSetState({
+      xLeft: currentLeftX,
+      leftX: currentLeftX,
+      rightX: currentRightX
+    });
   };
   render() {
     const { xAxisWidth, yAxisWidth, minLineHeight, data } = this.props;
     let h = minLineHeight * data.length;
     h = h < 50 ? 50 : h;
-    const width = xAxisWidth + yAxisWidth;
-    const { proption, xLeft } = this.getState();
+
+    const { leftX, width, rightX } = this.state;
     const slideStyle = {
-      width: parseFloat(proption) * xAxisWidth,
-      // 这里是跟 xAxis 里面相反的方向
-      left: +xLeft
+      // width,
+      marginLeft: leftX,
+      marginRight: rightX
+      // paddingRight:
     };
 
     return (
       <div ref={this.handleRef} className="bottom-slide">
-        Proption:
-        <input
-          type="range"
-          max="1"
-          min="0.01"
-          step="0.01"
-          defaultValue="1"
-          onChange={this.handleInputProptionChange}
-        />
-        X:
-        <input
-          type="range"
-          max={xAxisWidth}
-          min="0"
-          defaultValue="0"
-          onChange={this.handleInputXChange}
-        />
-        <svg height={h} width={width}>
+        <svg height={h} width={yAxisWidth + xAxisWidth}>
           <use xlinkHref="#tasks-readOnly" x={yAxisWidth} y={0} />
         </svg>
         <div
@@ -727,7 +774,12 @@ class Slide extends React.PureComponent {
               direction="left"
               onChange={this.handleXLeftChange}
             />
-            <div className="_move" style={{ width: 200, height: "100%" }} />
+            <DragStretchPart
+              direction="_move"
+              className="_move"
+              style={{ height: "100%" }}
+              onChange={this.handleSlideMove}
+            />
             <DragStretchPart
               direction="right"
               onChange={this.handleXRightChange}
@@ -744,14 +796,13 @@ export class StretchPart extends React.Component {
   state = {};
   constructor(props) {
     super(props);
-    this.handleDraging = throttle(this.handleDraging, 30, true);
+    this.handleDraging = throttle(this.handleDraging, 100, true);
   }
 
   componentDidMount() {
     // this.props.connectDragPreview(getDragPreview())
   }
 
-  componentDidUpdate() {}
   _handleDraging = e => {
     e.persist();
     this.handleDraging(e);
@@ -761,7 +812,7 @@ export class StretchPart extends React.Component {
     const pageX = e.pageX;
     if (this.startX) {
       const diff = pageX - this.startX;
-      if (Math.abs(diff) > 500 || diff == 0) {
+      if (Math.abs(diff) > 500 || diff === 0) {
         return;
       }
       this.props.onChange(diff);
@@ -775,9 +826,7 @@ export class StretchPart extends React.Component {
     document.body.removeChild(tempD);
   };
   handleDragStart = e => {
-    // e.persist();
     tempD.style.backgroundColor = "red";
-    // crt.style.display = "none"; /* or visibility: hidden, or any of the above */
     document.body.appendChild(tempD);
     e.dataTransfer.setDragImage(tempD, 0, 0);
     this.startX = e.pageX;
@@ -808,12 +857,18 @@ const DragStretchPart =
   StretchPart;
 // );
 
-const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
+const Graduation = ({
+  xAxisWidth,
+  yAxisWidth,
+  xLeft,
+  transform,
+  proption,
+  dateTime
+}) => {
   // 每一格子的宽度
   const width = xAxisWidth / columns / proption;
   const h = 12;
   // 如果 每个格子的宽度 < 某个值, 那么 偶数位置的column 则不绘制
-
   const m = moment(dateTime);
   let str, props;
   const fontSize = 12;
@@ -834,7 +889,8 @@ const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
         key: str,
         children: str,
         y: h,
-        fontSize
+        fontSize,
+        transform
       };
 
       if (i % 2 === 1 && width > strWidth) {
@@ -850,6 +906,7 @@ const Graduation = ({ xAxisWidth, yAxisWidth, proption, dateTime }) => {
   return (
     <svg height={h} width={xAxisWidth + yAxisWidth + 50}>
       {children}
+      <rect fill={"white"} width={yAxisWidth - 20} height={h} />
     </svg>
   );
 };

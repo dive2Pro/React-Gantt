@@ -44,12 +44,12 @@ video {
 }
 ._slide-container {
   position: absolute;
-  top: 50;
+  top: 0;
+  background: transparent;
 }
 ._slide-container ._slide {
   position: relative;
   height: 100%;
-  background: lightcoral;
 }
 ._slide ::after {
   position: absolute;
@@ -60,12 +60,11 @@ video {
   content: " ";
   pointer-events: none;
 }
-._stretch {
+._stretch.right,
+._stretch.left {
   width: 13px;
   height: 100%;
-  background: -9px 0
-    url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/P…N2LTM0MS4zMzMzMzN6IiBmaWxsPSIjRUZGMkY5IiBwLWlkPSIyNzAwIj48L3BhdGg+PC9zdmc+)
-    no-repeat;
+  background: lightblue;
   background-size: auto 30px;
   cursor: ew-resize;
 }
@@ -77,4 +76,6 @@ video {
 
 .bottom-slide ._slide ._move {
   flex: 1;
+  background: #615a5a;
+  opacity: 0.3;
 }

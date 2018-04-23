@@ -227,8 +227,10 @@
           - 遇到的问题:
             1.  drag 状态的保持. 是只在 drag 时, 浏览器才会 有 列如 鼠标保持 drag 图标
             2.  draging 中, 如何得到 坐标数值从而改变 state 
-
-
+            3.  在计算位置的时候, 通过哪些方法去计算 改变 `slide` 的属性 关系到整个控件在使用时得到的是否合理
+                1.  比如 计算`leftX` `width` 时, 这些属性在 `dragging` 时 只根据接受到的 `offset` 去改变 `leftX` 和`width` 这些属性得到的值, 经过计算是会有一些偏差的.
+                2.  避免偏差的出现, 需要 `总量` 参与进来. `xAisWidth` 是总量, 而同时 `leftX` 和 `rightX` 在 stretch 的时候 只会有一个被改变, 那么`currentWidth` 就是 `总量 - 某一方的改变值 - 另一方的值`
+                
 # 优化
 
 1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, 它的`Comsumer` 都会重新计算它的 `children()`
