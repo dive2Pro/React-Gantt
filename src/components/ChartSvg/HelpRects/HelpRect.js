@@ -14,15 +14,9 @@ export default class HelpRect extends React.Component {
           let y = h * r;
           const width = originalWidth / proption;
           let x = width * c;
-
           return (
             <rect
               transform={transform}
-              stroke="blue"
-              strokeWidth={0.2}
-              strokeOpacity={0.5}
-              strokeDasharray={[5, 3]}
-              strokeDashoffset={2}
               fill={"#fff"}
               x={x}
               y={y}

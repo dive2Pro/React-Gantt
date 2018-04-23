@@ -149,7 +149,7 @@ export default class Slide extends React.PureComponent {
     // console.log(currentWidth, ' -- ')
     this.internalSetState({
       proption: currentProption,
-      currentWidth,
+      width: currentWidth,
       rightX: deltaWidth
     });
   };
@@ -237,7 +237,7 @@ export class StretchPart extends React.Component {
   state = {};
   constructor(props) {
     super(props);
-    this.handleDraging = throttle(this.handleDraging, 150, true);
+    this.handleDraging = throttle(this.handleDraging, 100, true);
   }
 
   componentDidMount() {

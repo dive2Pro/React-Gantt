@@ -241,4 +241,6 @@
     考虑 2 种方式去解决: 
       1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
       2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+4.  造成这种现象的主要的问题是**过度渲染**. 在现在的代码中, 渲染的复杂度是 根据 `HelpRects`的 **`O(n*column^data.length)`**. 
+    但实际上, 达到同样的目的 只需要 渲染 `column + data.length` 条线段即可达到目的
     

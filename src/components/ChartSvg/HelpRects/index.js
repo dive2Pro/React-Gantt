@@ -1,7 +1,7 @@
 import React from "react";
 import HelpRect from "./HelpRect";
 
-import { columns, GanttContext } from "../../constants";
+import { columns, GanttContext, GanttStateContext } from "../../constants";
 
 class HelpRects extends React.Component {
   shouldComponentUpdate() {
@@ -9,26 +9,51 @@ class HelpRects extends React.Component {
   }
 
   render() {
+    const lineProps = {
+      stroke: "blue",
+      strokeWidth: 0.2,
+      strokeOpacity: 0.5,
+      strokeDasharray: [5, 3],
+      strokeDashoffset: 2
+    };
     return (
       <GanttContext.Consumer>
-        {({ lineHeight: h, data, xAxisWidth }) => {
-          const rows = data.length;
-          const originalWidth = xAxisWidth / columns;
-          let rects = [];
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < columns; c++) {
-              rects.push(
-                <HelpRect
-                  key={r + " - " + c}
-                  originalWidth={originalWidth}
-                  r={r}
-                  c={c}
-                  h={h}
-                />
-              );
-            }
-          }
-          return <g className="help-rects"> {rects}</g>;
+        {({ lineHeight: h, data, xAxisWidth, xAxisHeight }) => {
+          return (
+            <GanttStateContext.Consumer>
+              {({ xLeft, proption, transform }) => {
+                const rows = data.length;
+                const originalWidth = xAxisWidth / columns;
+                let rects = [];
+                for (let r = 0; r < rows; r++) {
+                  rects.push(
+                    <line
+                      {...lineProps}
+                      transform={transform}
+                      x1="0"
+                      x2={xAxisWidth / proption}
+                      y1={r * h}
+                      y2={r * h}
+                    />
+                  );
+                }
+                for (let c = 0; c < columns; c++) {
+                  const x = originalWidth * c / proption;
+                  rects.push(
+                    <line
+                      {...lineProps}
+                      transform={transform}
+                      x1={x}
+                      x2={x}
+                      y1={0}
+                      y2={xAxisHeight}
+                    />
+                  );
+                }
+                return <g className="help-rects"> {rects}</g>;
+              }}
+            </GanttStateContext.Consumer>
+          );
         }}
       </GanttContext.Consumer>
     );
