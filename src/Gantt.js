@@ -6,7 +6,8 @@ import {
   moment,
   GanttStateContext,
   GanttContext,
-  Types
+  Types,
+  DEFAULT_EMPTYELEMENT
 } from "./components/constants";
 import "./style/gantt.css";
 
@@ -20,7 +21,7 @@ function getDayMilliseconds(date) {
 export default class ReactGantt extends React.PureComponent {
   static defaultProps = {
     data: [],
-    renderHoverComponent: props => <React.Fragment />,
+    renderHoverComponent: DEFAULT_EMPTYELEMENT,
     timeoutColors: {
       used: "hsl(30, 100%, 54%)",
       avarage: "hsl(39, 100%, 86%)",
@@ -39,13 +40,13 @@ export default class ReactGantt extends React.PureComponent {
     minLineHeight: 2
   };
   static Types = Types;
-
-  state = {
-    proption: 0.5,
+  initialState = {
+    proption: this.props.proption || 0.5,
     xLeft: -1 * 0,
     dateTime: getDayMilliseconds(this.props.date),
     slideHeight: 30
   };
+  state = this.initialState;
 
   handleChange = args => {
     this.setState({
@@ -63,6 +64,7 @@ export default class ReactGantt extends React.PureComponent {
       timeoutColors,
       ontimeColors,
       awaitColor,
+      renderHoverComponent,
       ...rest
     } = this.props;
 
@@ -71,7 +73,7 @@ export default class ReactGantt extends React.PureComponent {
     const transform = `translate( ${xLeft * -1 / proption}, 0)`;
     const { xAxisWidth, yAxisWidth } = rest;
     return (
-      <GanttContext.Provider value={this.props}>
+      <GanttContext.Provider value={{ ...this.props }}>
         <GanttStateContext.Provider
           value={{
             ...this.state,

@@ -13,3 +13,7 @@ export const Types = {
   TASK: "__TASK",
   HIGHLIGHT: "__HIGHT_LIGHT"
 };
+
+export const DEFAULT_EMPTYELEMENT = (props = {}) => (
+  <React.Fragment>{props.children}</React.Fragment>
+);

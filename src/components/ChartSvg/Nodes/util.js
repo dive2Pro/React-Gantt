@@ -26,3 +26,9 @@ export function callAll(...fns) {
     });
   };
 }
+
+export function partialRight(fn, ...rightArgs) {
+  return function call(...args) {
+    return fn.apply(null, args.concat(rightArgs));
+  };
+}

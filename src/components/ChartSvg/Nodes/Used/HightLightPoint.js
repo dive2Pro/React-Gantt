@@ -1,6 +1,6 @@
 import React from "react";
 import { callAll, getUsedPositions } from "../util";
-import { Types } from "../../../constants";
+import { Types, DEFAULT_EMPTYELEMENT } from "../../../constants";
 const HightLightPoint = ({
   data,
   renderHoverComponent,
@@ -12,11 +12,14 @@ const HightLightPoint = ({
   highlightColor,
   ...rest
 }) => {
-  const Container = renderHoverComponent.apply(null, [
+  let Container = renderHoverComponent.apply(null, [
     Types.HIGHLIGHT,
     data,
     ...rest
   ]);
+  if (!React.isValidElement(Container)) {
+    Container = <DEFAULT_EMPTYELEMENT />;
+  }
   const { time, onClick, getHighLightProps = () => ({}) } = data;
   function innerGetProps() {
     const { className = " ", ...rest } = getHighLightProps(data);

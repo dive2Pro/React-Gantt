@@ -2,15 +2,13 @@ import React from "react";
 import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
-
+import { DEFAULT_EMPTYELEMENT, Types } from "../../constants";
 const TaskItems = calcHoc(
   ({
     dataItem,
     x,
     y,
-    renderHoverComponent = function(props) {
-      return props;
-    },
+    renderHoverComponent,
     awaitWidth,
     avarageWidth,
     usedWidth,
@@ -26,8 +24,19 @@ const TaskItems = calcHoc(
     const usedH = h / 4;
     // console.log(" taskItems");
     const { avarage, used, highlight } = color;
-    return (
-      <g fontSize={fontSize} transform={transform}>
+    let HoverContainer = renderHoverComponent.apply(null, [
+      Types.TASK,
+      dataItem,
+      used
+    ]);
+    if (!React.isValidElement(HoverContainer)) {
+      HoverContainer = <DEFAULT_EMPTYELEMENT />;
+    }
+
+    HoverContainer = React.cloneElement(
+      HoverContainer,
+      null,
+      <g>
         <text y={y + 12} x={x} height={h / 3}>
           {dataItem.name}
         </text>
@@ -50,6 +59,11 @@ const TaskItems = calcHoc(
           highlightColor={highlight}
           {...rest}
         />
+      </g>
+    );
+    return (
+      <g fontSize={fontSize} transform={transform}>
+        {HoverContainer}
         {awaitWidth > 10 && (
           <Await
             color={awaitColor}

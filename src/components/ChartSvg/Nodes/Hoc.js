@@ -1,6 +1,10 @@
 import React from "react";
-import { dateToMilliseconds, getUsedPositions } from "./util";
-import { GanttStateContext, dayMillisedons } from "../../constants";
+import { dateToMilliseconds, getUsedPositions, partialRight } from "./util";
+import {
+  GanttStateContext,
+  dayMillisedons,
+  DEFAULT_EMPTYELEMENT
+} from "../../constants";
 
 class OnlyRenderOnce extends React.Component {
   shouldComponentUpdate() {
@@ -74,6 +78,9 @@ const calcHoc = Comp => {
                 } else {
                   awaitWidth = calcWidth(awaitEnd - awaitStart);
                 }
+                renderHoverComponent = readOnly
+                  ? DEFAULT_EMPTYELEMENT
+                  : renderHoverComponent;
 
                 return (
                   <Comp
@@ -89,6 +96,7 @@ const calcHoc = Comp => {
                     calcWidth={calcWidth}
                     fontSize={fontSize}
                     transform={transform}
+                    {...rest}
                     renderHoverComponent={renderHoverComponent}
                   />
                 );

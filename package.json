@@ -5,6 +5,7 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
+    "antd": "latest",
     "lodash": "4.17.5",
     "moment": "2.22.1",
     "react": "16.3.2",
