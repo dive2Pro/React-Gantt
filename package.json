@@ -1,5 +1,5 @@
 {
-  "name": "new",
+  "name": "react-gantt",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -8,8 +8,6 @@
     "lodash": "4.17.5",
     "moment": "2.22.1",
     "react": "16.3.2",
-    "react-dnd": "2.6.0",
-    "react-dnd-html5-backend": "2.6.0",
     "react-dom": "16.3.2",
     "react-scripts": "1.1.4"
   },
