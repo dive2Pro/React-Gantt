@@ -9,7 +9,10 @@ import {
   Types,
   DEFAULT_EMPTYELEMENT
 } from "./components/constants";
+import P from 'prop-types'
+
 import "./style/gantt.css";
+import { WSATYPE_NOT_FOUND } from "constants";
 
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
@@ -18,7 +21,18 @@ function getDayMilliseconds(date) {
   return initialTime;
 }
 
+const StringOrNumberType = P.oneOfType([
+  P.string,
+  P.number
+])
+const ColorType =  P.shape({
+  used: P.string,
+  avarage: P.string,
+  highlight: P.string
+})
+
 export default class ReactGantt extends React.PureComponent {
+  
   static defaultProps = {
     data: [],
     renderHoverComponent: DEFAULT_EMPTYELEMENT,
@@ -106,4 +120,31 @@ export default class ReactGantt extends React.PureComponent {
       </GanttContext.Provider>
     );
   }
+}
+
+ReactGantt.propTypes = {
+  data: P.arrayOf(P.shape({
+    id: P.string,
+    name: P.string,
+    usedTime: P.shape({
+      startTime:StringOrNumberType,
+      endTime: StringOrNumberType})
+    ,
+    YAxis:P.string,
+    highlightPoints: P.arrayOf(P.shape({
+      time: StringOrNumberType,
+      content: P.any
+    })),
+    avarageValue: StringOrNumberType
+  })).isRequired,
+  renderHoverComponent: P.func,
+  timeoutColors:ColorType,
+  ontimeColors:ColorType,
+  awaitColor: P.string,
+  lineHeight: StringOrNumberType,
+  yAxisWidth: StringOrNumberType,
+  xAxisHeight: StringOrNumberType,
+  minLineHeight: StringOrNumberType,
+  proption: StringOrNumberType.isRequired,
+  startX: StringOrNumberType.isRequired
 }
