@@ -25,6 +25,9 @@ const calcHoc = Comp => {
     minLineHeight,
     dataLength,
     fontSize,
+    timeoutColors,
+    ontimeColors,
+    awaitColor,
     ...rest
   }) => {
     const { usedTime, avarageValue } = dataItem;
@@ -39,9 +42,6 @@ const calcHoc = Comp => {
           dateTime,
           transform,
           xLeft,
-          awaitColor,
-          ontimeColors,
-          timeoutColors,
           ...restState
         }) => {
           return (

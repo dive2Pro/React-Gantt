@@ -58,8 +58,14 @@ export default class ReactGantt extends React.PureComponent {
     dateTime: getDayMilliseconds(this.props.date),
   };
   state = this.initialState;
-
+  constructor(props){
+    super(props)
+    this._staticProps = props;
+  }
   handleChange = args => {
+    if(args.xLeft) {
+      // return;
+    }
     this.setState({
       ...Object.keys(args)
         .filter(key => {
@@ -89,14 +95,11 @@ render() {
   const transform = `translate( ${xLeft * -1 / proption}, 0)`;
   const { xAxisWidth, leftWidth } = rest;
   return (
-    <GanttContext.Provider value={rest}>
+    <GanttContext.Provider value={this.props}>
       <GanttStateContext.Provider
         value={{
           ...this.state,
           transform,
-          ontimeColors,
-          timeoutColors,
-          awaitColor
         }}
       >
         <React.Fragment>

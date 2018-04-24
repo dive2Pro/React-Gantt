@@ -2,10 +2,7 @@ import React from "react";
 import HelpRects from "./HelpRects";
 import Nodes from "./Nodes";
 
-export default class XAxisSvg extends React.Component {
-  shouldComponentUpdate() {
-    return false;
-  }
+export default class XAxisSvg extends React.PureComponent {
   render() {
     const { leftWidth } = this.props;
     return (

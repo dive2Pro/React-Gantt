@@ -22,6 +22,7 @@ export default class Nodes extends React.Component {
             const dataItem = data[i];
             const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
             const y = i * height;
+            console.log(' this is should work')
             ary.push(
               <Tasks
                 key={i}

@@ -56,3 +56,12 @@ export const HalfHours = [
   "23:00", "23:30",
   "24:00"
 ]
+
+
+export  const lineProps = {
+  stroke: "blue",
+  strokeWidth: 0.2,
+  strokeOpacity: 0.5,
+  strokeDasharray: [5, 3],
+  strokeDashoffset: 2
+};

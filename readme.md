@@ -180,9 +180,9 @@
     6.  每行的高度 | YAxis 的宽度 | 整个 组件所占 宽度 | XAxis 的高度
 3.  接受的 props 
       1. data required
-        ```
+        ```typescript
         {
-          id: string // ...
+          id: string, // ...
           name: string // 展示名, 展示在最高层
           usedTime: {
             startTime: number // 微秒
@@ -236,7 +236,7 @@
                 
 # 优化
 
-1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, 它的`Comsumer` 都会重新计算它的 `children()`
+1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, **这里要注意的是 `{...}` es6 中的解构操作, 他会生成一个新的对象**, 它的`Comsumer` 都会重新计算它的 `children()`
 2.  dragging handler 花费时间过多, 即使是在 `build` 的环境中 依然会很卡
     - 代码中, 目前的操作会导致的更新, 主要是 `XAxis` 中的 每一个svg 图形的 `style` , 也就是 `transform` 和 `width`.
     - 目的是减少 rerender 的操作, 可通过 `throttle` 或者 [更新 style element](https://github.com/atlassian/react-beautiful-dnd/blob/0fb4dc75ea9b625f64cac48602635ac2822f26ec/src/view/style-marshal/style-marshal.js) 等方式
@@ -246,7 +246,92 @@
       2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
 4.  造成这种现象的主要的问题是**过度渲染**. 在现在的代码中, 渲染的复杂度是 根据 `HelpRects`的 **`O(n*column^data.length)`**. 
     但实际上, 达到同样的目的 只需要 渲染 `column + data.length` 条线段即可达到目的
-    
+5.  在 React 中 渲染同样的数组, 更细粒度的划分组件, 得到的结果性能更优
+    在 `HelpRects` 组件中, 如果组件更新时,在 `render` 方法中 都重新生成一组 子组件 和  只更新子组件 相比, 帧数平均要高 `1~2` 帧    
+    这是 优化前的代码:
+    ```javascript
+         return (
+            <GanttStateContext.Consumer>
+              {({ proption, transform }) => {
+                const rows = data.length;
+                const originalWidth = xAxisWidth / columns;
+                let rects = [];
+                for (let r = 0; r < rows; r++) {
+                  rects.push(
+                    <line
+                      key={'row - ' + r}
+                      {...lineProps}
+                      x1="0"
+                      x2={xAxisWidth / proption}
+                      y1={r * h}
+                      y2={r * h}
+                    />
+                  );
+                }
+                for (let c = 0; c < columns; c++) {
+                  const x = originalWidth * c / proption;
+                  rects.push(
+                    <line
+                      key={'column - ' + c}
+                      {...lineProps}
+                      x1={x}
+                      x2={x}
+                      y1={0}
+                      y2={chartHeight}
+                    />
+                  );
+                }
+                return <g
+                  transform={transform}
+                  className="help-rects"> {rects}</g>;
+              }}
+    ```
+    帧数:
+
+    ![优化前](./gifs/HelpRects-before.gif)
+
+    这是优化后:
+
+    ```javascript
+    ...
+    render() {
+        ...
+          let rects = [];
+          const rows = data.length;
+          const initialWidth = xAxisWidth / columns;
+          for (let r = 0; r < rows; r++) {
+            rects.push(
+              <RowLine
+                key={'row - ' + r}
+                xAxisWidth={xAxisWidth}
+                y={r * h}
+              />
+            );
+          }
+          for (let c = 0; c < columns; c++) {
+            rects.push(
+              <ColumnLine
+                key={'column - ' + c}
+                initialWidth={initialWidth}
+                h={chartHeight}
+                i={c}
+              />
+            );
+          }
+          return (
+            <GanttStateContext.Consumer>
+              {({ proption, transform }) => {
+                return <g
+                  transform={transform}
+                  className="help-rects"> {
+                    rects
+                  }</g>;
+              }}
+            </GanttStateContext.Consumer>
+      ...
+    ```
+    ![优化后](./gifs/HelpRects-after.gif)
+
 
 # 代码重构
 1.  Slider
