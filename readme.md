@@ -1,4 +1,7 @@
 
+# 展示
+![show-gif](./gifs/show.gif)
+
 # 如何画一个 gantt 图
 
 1. 什么是 gantt 图 ?
@@ -196,9 +199,9 @@
           waitingColor?: string
           usedColor?: string
           lineHeight?: number = 50,
-          yAxisWidth?: number = 100,
+          leftWidth?: number = 100,
           xAxisWidth?: number = 750,
-          xAxisHeight?: number = 1000
+          chartHeight?: number = 1000
           ...restProps // 可以传递任意的值, 这些都会 patch 到 每个单元 `g` 上面
         }[]
         ```
