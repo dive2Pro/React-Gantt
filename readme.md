@@ -2,6 +2,11 @@
 # 展示
 ![show-gif](./gifs/show.gif)
 
+
+# 使用
+
+    yarn & yarn start
+
 # 如何画一个 gantt 图
 
 1. 什么是 gantt 图 ?
@@ -253,5 +258,3 @@
   - 单一原则:
     1.  抽出 Dragger 组件, 处理 `drag` 事件, 处理回调
     2.  抽出 Dragging 组件, 处理 Dragger 组件中的回调出来的数值并处理出 `startPercent` 和 `percent`
-      - abstract props :
-    1. 
