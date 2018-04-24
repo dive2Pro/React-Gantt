@@ -3,7 +3,7 @@ import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
 import { DEFAULT_EMPTYELEMENT, Types } from "../../constants";
-const TaskItems = calcHoc(
+const TaskItems =
   ({
     dataItem,
     x,
@@ -49,9 +49,9 @@ const TaskItems = calcHoc(
       null,
       <g>
         <g transform={textPlusTransform}>
-        <text  y={y + 12} x={x} height={h / 3}>
-          {dataItem.name}
-        </text>
+          <text y={y + 12} x={x} height={h / 3}>
+            {dataItem.name}
+          </text>
         </g>
         <rect
           fill={avarage}
@@ -74,7 +74,7 @@ const TaskItems = calcHoc(
       </g>
     );
     return (
-      <g fontSize={fontSize} transform={transform}>
+      <React.Fragment>
         {HoverContainer}
         {awaitWidth > 10 && (
           <Await
@@ -88,12 +88,12 @@ const TaskItems = calcHoc(
             renderHoverComponent={renderHoverComponent}
           />
         )}
-      </g>
+      </React.Fragment>
     );
   }
-);
+
 
 /**
  *
  */
-export default TaskItems;
+export default calcHoc(TaskItems);

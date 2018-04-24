@@ -3,7 +3,6 @@ import { dateToMilliseconds, getUsedPositions, partialRight } from "./util";
 import {
   GanttStateContext,
   dayMillisedons,
-  DEFAULT_EMPTYELEMENT
 } from "../../constants";
 
 class OnlyRenderOnce extends React.Component {
@@ -21,27 +20,24 @@ const calcHoc = Comp => {
   const Wrapper = ({
     dataItem,
     xAxisWidth,
-    h,
-    i,
     awaitStartTime,
     readOnly,
     minLineHeight,
     dataLength,
-    renderHoverComponent,
-  
+    fontSize,
     ...rest
   }) => {
     const { usedTime, avarageValue } = dataItem;
     const awaitStart = dateToMilliseconds(awaitStartTime);
     const awaitEnd = dateToMilliseconds(usedTime.startTime);
 
+    let awaitWidth;
     return (
       <GanttStateContext.Consumer>
         {({
           proption,
           dateTime,
           transform,
-          slideHeight,
           xLeft,
           awaitColor,
           ontimeColors,
@@ -55,8 +51,7 @@ const calcHoc = Comp => {
                   usedTime,
                   dateTime
                 );
-                const fontSize = readOnly ? 0 : 12;
-                const height = readOnly ? slideHeight / dataLength : h;
+
                 transform = readOnly ? "" : transform;
                 proption = readOnly ? 1 : proption;
 
@@ -68,39 +63,38 @@ const calcHoc = Comp => {
                 const avarageWidth = calcWidth(avarageValue);
                 const x = calcWidth(timeStartPoint);
 
-                const y = i * height;
-                const color =
-                  avarageWidth > usedWidth ? ontimeColors : timeoutColors;
-
-                let awaitWidth;
-
                 if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
                   awaitWidth = 0;
                 } else {
                   awaitWidth = calcWidth(awaitEnd - awaitStart);
                 }
-                renderHoverComponent = readOnly
-                  ? DEFAULT_EMPTYELEMENT
-                  : renderHoverComponent;
+
+
+                const color =
+                  avarageWidth > usedWidth ? ontimeColors : timeoutColors;
+
+
                 return (
-                  <Comp
-                    x={x}
-                    color={color}
-                    awaitColor={awaitColor}
-                    usedWidth={usedWidth}
-                    avarageWidth={avarageWidth}
-                    h={height}
-                    y={y}
-                    dataItem={dataItem}
-                    awaitWidth={awaitWidth}
-                    usedTime={usedTime}
-                    calcWidth={calcWidth}
-                    fontSize={fontSize}
+                  <g
                     transform={transform}
-                    xLeft={xLeft / proption}
-                    renderHoverComponent={renderHoverComponent}
-                    startTime={awaitEnd}
-                  />
+                    fontSize={fontSize}
+                  >
+                    <Comp
+                      x={x}
+                      fontSize={fontSize}
+                      color={color}
+                      awaitColor={awaitColor}
+                      usedWidth={usedWidth}
+                      avarageWidth={avarageWidth}
+                      dataItem={dataItem}
+                      awaitWidth={awaitWidth}
+                      usedTime={usedTime}
+                      calcWidth={calcWidth}
+                      xLeft={xLeft / proption}
+                      startTime={awaitEnd}
+                      {...rest}
+                    />
+                  </g>
                 );
               }}
             </OnlyRenderOnce>

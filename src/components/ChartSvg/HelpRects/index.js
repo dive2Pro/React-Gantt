@@ -30,7 +30,6 @@ class HelpRects extends React.Component {
                     <line
                       key={'row - ' + r}
                       {...lineProps}
-                      transform={transform}
                       x1="0"
                       x2={xAxisWidth / proption}
                       y1={r * h}
@@ -42,9 +41,8 @@ class HelpRects extends React.Component {
                   const x = originalWidth * c / proption;
                   rects.push(
                     <line
-                      key={'column - ' + c}                    
+                      key={'column - ' + c}
                       {...lineProps}
-                      transform={transform}
                       x1={x}
                       x2={x}
                       y1={0}
@@ -52,7 +50,9 @@ class HelpRects extends React.Component {
                     />
                   );
                 }
-                return <g className="help-rects"> {rects}</g>;
+                return <g
+                  transform={transform}
+                  className="help-rects"> {rects}</g>;
               }}
             </GanttStateContext.Consumer>
           );

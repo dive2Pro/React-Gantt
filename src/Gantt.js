@@ -48,14 +48,14 @@ export default class ReactGantt extends React.PureComponent {
     leftWidth: 100,
     xAxisWidth: 1150,
     chartHeight: 200,
-    minLineHeight: 2
+    minLineHeight: 2,
+    slideHeight: 30
   };
   static Types = Types;
   initialState = {
     proption: this.props.proption || 0.5,
     xLeft: this.props.startX || 200,
     dateTime: getDayMilliseconds(this.props.date),
-    slideHeight: 30
   };
   state = this.initialState;
 
@@ -85,7 +85,7 @@ render() {
   } = this.props;
 
   // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
-  const { xLeft, proption, slideHeight } = this.state;
+  const { xLeft, proption } = this.state;
   const transform = `translate( ${xLeft * -1 / proption}, 0)`;
   const { xAxisWidth, leftWidth } = rest;
   return (
@@ -113,7 +113,7 @@ render() {
           </div>
           <Graduation {...rest} {...this.state} transform={transform} />
           <Slide {...rest} {...this.state} onStateChange={this.handleChange}>
-            <svg height={slideHeight} width={leftWidth + xAxisWidth}>
+            <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
               <use xlinkHref="#tasks-readOnly" x={leftWidth} y={0} />
             </svg>
           </Slide>

@@ -8,8 +8,7 @@ const YAxis = ({ data, lineHeight: h, leftWidth }) => {
   return data.map(({ YAxis: name }, i) => {
     const textX = leftWidth - name.trim().length * FONTSIZE;
     return (
-      <React.Fragment key={name + " - " + i}>
-        <g>
+        <g key={name + " - " + i}>
           <rect
             fill={"white"}
             x={startX}
@@ -18,13 +17,13 @@ const YAxis = ({ data, lineHeight: h, leftWidth }) => {
             height={h}
           />
           <text
+          // text 置中
             textAnchor="middle"
             transform={`translate(${leftWidth /2 } ,0)`}
             y={startY + h / 2 + 23 / 4 + h * i}>
             {name}
           </text>
         </g>
-      </React.Fragment>
     );
   });
 };
