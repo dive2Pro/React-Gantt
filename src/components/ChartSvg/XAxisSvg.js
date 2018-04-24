@@ -7,9 +7,9 @@ export default class XAxisSvg extends React.Component {
     return false;
   }
   render() {
-    const { yAxisWidth } = this.props;
+    const { leftWidth } = this.props;
     return (
-      <svg x={yAxisWidth}>
+      <svg x={leftWidth}>
         <HelpRects />
         <defs>{React.createElement(Nodes, { readOnly: true })}</defs>
         {React.createElement(Nodes)}

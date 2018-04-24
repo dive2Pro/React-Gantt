@@ -18,7 +18,7 @@ class HelpRects extends React.Component {
     };
     return (
       <GanttContext.Consumer>
-        {({ lineHeight: h, data, xAxisWidth, xAxisHeight }) => {
+        {({ lineHeight: h, data, xAxisWidth, chartHeight }) => {
           return (
             <GanttStateContext.Consumer>
               {({ proption, transform }) => {
@@ -28,6 +28,7 @@ class HelpRects extends React.Component {
                 for (let r = 0; r < rows; r++) {
                   rects.push(
                     <line
+                      key={'row - ' + r}
                       {...lineProps}
                       transform={transform}
                       x1="0"
@@ -41,12 +42,13 @@ class HelpRects extends React.Component {
                   const x = originalWidth * c / proption;
                   rects.push(
                     <line
+                      key={'column - ' + c}                    
                       {...lineProps}
                       transform={transform}
                       x1={x}
                       x2={x}
                       y1={0}
-                      y2={xAxisHeight}
+                      y2={chartHeight}
                     />
                   );
                 }

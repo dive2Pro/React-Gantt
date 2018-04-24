@@ -1,4 +1,5 @@
 import React from "react";
+
 const noop = () => {};
 export default class Dragger extends React.PureComponent {
   static defaultProps = {
@@ -42,7 +43,10 @@ export default class Dragger extends React.PureComponent {
     document.removeEventListener("mousemove", this.mouseMove, false);
     document.removeEventListener("mouseup", this.mouseUp, false);
   };
+  
   render() {
-    return <div {...this.props} onMouseDown={this.mouseDown} />;
+    const {onDragging, dragEnd, dragStateChange, ...rest} = this.props
+  
+    return <div {...rest} onMouseDown={this.mouseDown} />;
   }
 }

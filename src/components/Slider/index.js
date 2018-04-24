@@ -9,7 +9,7 @@ export default class Slide extends React.PureComponent {
     const minPercent = this.MIN_WIDTH / xAxisWidth;
     const changed = {};
     if (percent != null) {
-      changed.proption = percent || 0.00001;
+      changed.proption = percent;
     }
     if (startPercent != null) {
       changed.xLeft = startPercent * xAxisWidth;
@@ -20,7 +20,7 @@ export default class Slide extends React.PureComponent {
   render() {
     const {
       xAxisWidth,
-      yAxisWidth,
+      leftWidth,
       minLineHeight,
       data,
       children,
@@ -49,7 +49,7 @@ export default class Slide extends React.PureComponent {
                 className="_slide-container"
                 style={{
                   width: xAxisWidth,
-                  left: yAxisWidth,
+                  left: leftWidth,
                   height: h
                 }}
               >

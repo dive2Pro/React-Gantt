@@ -28,6 +28,7 @@ const calcHoc = Comp => {
     minLineHeight,
     dataLength,
     renderHoverComponent,
+  
     ...rest
   }) => {
     const { usedTime, avarageValue } = dataItem;
@@ -38,12 +39,13 @@ const calcHoc = Comp => {
       <GanttStateContext.Consumer>
         {({
           proption,
-          ontimeColors,
-          timeoutColors,
           dateTime,
           transform,
           slideHeight,
           xLeft,
+          awaitColor,
+          ontimeColors,
+          timeoutColors,
           ...restState
         }) => {
           return (
@@ -72,7 +74,7 @@ const calcHoc = Comp => {
 
                 let awaitWidth;
 
-                if (awaitStartTime === -1 || awaitStart > awaitEnd) {
+                if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
                   awaitWidth = 0;
                 } else {
                   awaitWidth = calcWidth(awaitEnd - awaitStart);
@@ -80,11 +82,11 @@ const calcHoc = Comp => {
                 renderHoverComponent = readOnly
                   ? DEFAULT_EMPTYELEMENT
                   : renderHoverComponent;
-
                 return (
                   <Comp
                     x={x}
                     color={color}
+                    awaitColor={awaitColor}
                     usedWidth={usedWidth}
                     avarageWidth={avarageWidth}
                     h={height}
@@ -96,8 +98,8 @@ const calcHoc = Comp => {
                     fontSize={fontSize}
                     transform={transform}
                     xLeft={xLeft / proption}
-                    {...rest}
                     renderHoverComponent={renderHoverComponent}
+                    startTime={awaitEnd}
                   />
                 );
               }}

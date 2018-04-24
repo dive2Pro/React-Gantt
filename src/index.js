@@ -73,12 +73,12 @@ const DATA = [
     name: "祈求者", // 展示名, 展示在最高层
     usedTime: {
       startTime: "2018-4-21, 15:20", // 微秒
-      endTime: "2018-4-21, 18: 22" // 微秒
+      endTime: "2018-4-21, 17: 10" // 微秒
     },
     YAxis: "中路挂机者", // 任务名
     highlightPoints: [
       {
-        time: DATE + "17:30",
+        time: DATE + "17:00",
         content: "A帐" // 微秒
       }
     ],
@@ -96,7 +96,9 @@ class App extends React.PureComponent {
             .concat(DATA)
             .concat(DATA)
         )}
-        proption={0.02}
+        chartHeight={700}
+        proption={0.4}
+        startX={200}
         date={"2018-4-21"}
         renderHoverComponent={(type, dataItem, ...rest) => {
           switch (type) {

@@ -3,7 +3,7 @@ import { columns, moment } from "./constants";
 
 const Graduation = ({
   xAxisWidth,
-  yAxisWidth,
+  leftWidth,
   transform,
   proption,
   dateTime
@@ -28,7 +28,7 @@ const Graduation = ({
       const strWidth = (str.length - 1) * fontSize;
       // 计算偏移
       props = {
-        x: yAxisWidth + i * width - strWidth / 4,
+        x: leftWidth + i * width - strWidth / 4,
         key: str,
         children: str,
         y: h,
@@ -47,9 +47,9 @@ const Graduation = ({
     .filter(Boolean);
 
   return (
-    <svg height={h} width={xAxisWidth + yAxisWidth + 50}>
+    <svg height={h} width={xAxisWidth + leftWidth + 50}>
       {children}
-      <rect fill={"white"} width={yAxisWidth - 20} height={h} />
+      <rect fill={"white"} width={leftWidth - 20} height={h} />
     </svg>
   );
 };

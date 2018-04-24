@@ -7,9 +7,9 @@ const HightLightPoint = ({
   x,
   y,
   height,
-  usedTime,
+  startTime,
   calcWidth,
-  highlightColor,
+  color,
   ...rest
 }) => {
   let Container = renderHoverComponent.apply(null, [
@@ -29,7 +29,7 @@ const HightLightPoint = ({
     };
   }
   const { timeWidth } = getUsedPositions({
-    startTime: usedTime.startTime,
+    startTime: startTime,
     endTime: time
   });
 
@@ -40,7 +40,7 @@ const HightLightPoint = ({
   const children = (
     <g {...innerGetProps()} onClick={callAll(onClick)}>
       <ellipse
-        fill={highlightColor}
+        fill={color}
         rx={r}
         ry={r}
         cx={startX + r}

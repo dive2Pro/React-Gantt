@@ -17,7 +17,15 @@ export const getUsedPositions = (usedTime, initialTime) => {
   };
 };
 
-export const dateToMilliseconds = date => moment(date).valueOf();
+
+export const dateToMilliseconds = date => {
+  if(typeof date === 'string'){
+    date = date.replace(/,/ , "")
+    date = date.replace(/: / ,":")
+  }
+const result =  moment(date).valueOf();
+  return result;
+} 
 
 export function callAll(...fns) {
   return function eventHandle(...args) {

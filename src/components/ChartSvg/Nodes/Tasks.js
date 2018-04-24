@@ -66,7 +66,6 @@ const TaskItems = calcHoc(
           y={usedY}
           width={usedWidth}
           height={usedH}
-          highlightPoints={dataItem.highlightPoints}
           dataItem={dataItem}
           renderHoverComponent={renderHoverComponent}
           highlightColor={highlight}

@@ -1,9 +1,12 @@
 import React from "react";
 
-const YAxis = ({ data, lineHeight: h, yAxisWidth }) => {
+const YAxis = ({ data, lineHeight: h, leftWidth }) => {
   const startX = 0,
     startY = 0;
+  const FONTSIZE = 16;
+
   return data.map(({ YAxis: name }, i) => {
+    const textX = leftWidth - name.trim().length * FONTSIZE;
     return (
       <React.Fragment key={name + " - " + i}>
         <g>
@@ -11,10 +14,13 @@ const YAxis = ({ data, lineHeight: h, yAxisWidth }) => {
             fill={"white"}
             x={startX}
             y={startY + h * i}
-            width={yAxisWidth}
+            width={leftWidth}
             height={h}
           />
-          <text x={yAxisWidth / 2 - 50 / 2} y={startY + h / 2 + 23 / 4 + h * i}>
+          <text
+            textAnchor="middle"
+            transform={`translate(${leftWidth /2 } ,0)`}
+            y={startY + h / 2 + 23 / 4 + h * i}>
             {name}
           </text>
         </g>
@@ -25,10 +31,10 @@ const YAxis = ({ data, lineHeight: h, yAxisWidth }) => {
 
 export default class YAxisSvg extends React.PureComponent {
   render() {
-    const { yAxisWidth, ...rest } = this.props;
+    const { leftWidth, chartHeight, ...rest } = this.props;
     return (
-      <svg width={yAxisWidth}>
-        <YAxis {...rest} />
+      <svg width={leftWidth}>
+        <YAxis {...this.props} />
       </svg>
     );
   }

@@ -6,11 +6,11 @@ class Chart extends React.Component {
     return false;
   }
   render() {
-    const { yAxisWidth, xAxisWidth, lineHeight, data } = this.props;
+    const { leftWidth, xAxisWidth, lineHeight, data } = this.props;
     return (
-      <svg width={yAxisWidth + xAxisWidth} height={lineHeight * data.length}>
+      <svg width={leftWidth + xAxisWidth} height={lineHeight * data.length}>
         <YAxisSvg {...this.props} />
-        <XAxisSvg yAxisWidth={yAxisWidth} />
+        <XAxisSvg leftWidth={leftWidth} />
       </svg>
     );
   }

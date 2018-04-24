@@ -33,20 +33,21 @@ export default class ReactGantt extends React.PureComponent {
     data: [],
     renderHoverComponent: DEFAULT_EMPTYELEMENT,
     timeoutColors: {
-      used: "hsl(30, 100%, 54%)",
-      avarage: "hsl(39, 100%, 86%)",
-      highlight: "red"
-    },
-    ontimeColors: {
+     
       used: "hsl(100, 77%, 44%)",
       avarage: "hsl(103, 77%, 53%)",
       highlight: "red"
     },
+    ontimeColors: {
+      used: "hsl(30, 100%, 54%)",
+      avarage: "hsl(39, 100%, 86%)",
+      highlight: "red",
+    },
     awaitColor: "hsl(103, 77%, 53%)",
     lineHeight: 50,
-    yAxisWidth: 100,
+    leftWidth: 100,
     xAxisWidth: 1150,
-    xAxisHeight: 200,
+    chartHeight: 200,
     minLineHeight: 2
   };
   static Types = Types;
@@ -59,70 +60,74 @@ export default class ReactGantt extends React.PureComponent {
   state = this.initialState;
 
   handleChange = args => {
-    console.log(args)
     this.setState({
       ...Object.keys(args)
         .filter(key => {
           return this.state.hasOwnProperty(key);
         })
-        .reduce((newObj, key) => ((newObj[key] = args[key]), newObj), {})
-    });
-  };
+        .reduce((newObj, key) => {
+          newObj[key] = args[key]
+          if(key === 'proption' && !newObj[key]) {
+            newObj[key] = 0.00002
+          }
+          return newObj
 
-  render() {
-    const {
-      xAxisHeight,
-      timeoutColors,
-      ontimeColors,
-      awaitColor,
-      renderHoverComponent,
-      ...rest
-    } = this.props;
+    }, {})
+  });
+};
 
-    // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
-    const { xLeft, proption, slideHeight } = this.state;
-    const transform = `translate( ${xLeft * -1 / proption}, 0)`;
-    const { xAxisWidth, yAxisWidth } = rest;
-    return (
-      <GanttContext.Provider value={{ ...this.props }}>
-        <GanttStateContext.Provider
-          value={{
-            ...this.state,
-            transform,
-            ontimeColors,
-            timeoutColors,
-            awaitColor
-          }}
-        >
-          <React.Fragment>
-            <div
-              className="chart-container"
-              style={{
-                height: xAxisHeight,
-                width: xAxisWidth + yAxisWidth,
-                overflowY: "auto",
-                overflowX: "hidden"
-              }}
-            >
-              <ChartSvg {...this.props} {...this.state} transform={transform} />
-            </div>
-            <Graduation {...rest} {...this.state} transform={transform} />
-            <Slide {...rest} {...this.state} onStateChange={this.handleChange}>
-              <svg height={slideHeight} width={yAxisWidth + xAxisWidth}>
-                <use xlinkHref="#tasks-readOnly" x={yAxisWidth} y={0} />
-              </svg>
-            </Slide>
-          </React.Fragment>
-        </GanttStateContext.Provider>
-      </GanttContext.Provider>
-    );
-  }
+render() {
+  const {
+    timeoutColors,
+    ontimeColors,
+    awaitColor,
+    ...rest
+  } = this.props;
+
+  // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
+  const { xLeft, proption, slideHeight } = this.state;
+  const transform = `translate( ${xLeft * -1 / proption}, 0)`;
+  const { xAxisWidth, leftWidth } = rest;
+  return (
+    <GanttContext.Provider value={rest}>
+      <GanttStateContext.Provider
+        value={{
+          ...this.state,
+          transform,
+          ontimeColors,
+          timeoutColors,
+          awaitColor
+        }}
+      >
+        <React.Fragment>
+          <div
+            className="chart-container"
+            style={{
+              height: this.props.chartHeight,
+              width: xAxisWidth + leftWidth,
+              overflowY: "auto",
+              overflowX: "hidden"
+            }}
+          >
+            <ChartSvg {...this.props} {...this.state} transform={transform} />
+          </div>
+          <Graduation {...rest} {...this.state} transform={transform} />
+          <Slide {...rest} {...this.state} onStateChange={this.handleChange}>
+            <svg height={slideHeight} width={leftWidth + xAxisWidth}>
+              <use xlinkHref="#tasks-readOnly" x={leftWidth} y={0} />
+            </svg>
+          </Slide>
+        </React.Fragment>
+      </GanttStateContext.Provider>
+    </GanttContext.Provider>
+  );
+}
 }
 
 ReactGantt.propTypes = {
   data: P.arrayOf(
     P.shape({
-      id: P.string,
+      id: StringOrNumberType,
       name: P.string,
       usedTime: P.shape({
         startTime: StringOrNumberType,
@@ -143,9 +148,9 @@ ReactGantt.propTypes = {
   ontimeColors: ColorType,
   awaitColor: P.string,
   lineHeight: StringOrNumberType,
-  yAxisWidth: StringOrNumberType,
-  xAxisHeight: StringOrNumberType,
+  leftWidth: StringOrNumberType,
+  chartHeight: StringOrNumberType,
   minLineHeight: StringOrNumberType,
-  proption: StringOrNumberType.isRequired,
-  startX: StringOrNumberType.isRequired
+  proption: StringOrNumberType,
+  startX: StringOrNumberType
 };
