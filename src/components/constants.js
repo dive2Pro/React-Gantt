@@ -18,6 +18,7 @@ export const DEFAULT_EMPTYELEMENT = (props = {}) => (
   <React.Fragment>{props.children}</React.Fragment>
 );
 
+export const DEFUALT_RENDER_HOVER_COMPONENT = () => DEFAULT_EMPTYELEMENT
 export const HalfHours = [
   "00:00", "00:30",
   "01:00", "01:30",

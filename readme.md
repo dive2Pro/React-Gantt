@@ -332,7 +332,94 @@
     ```
     ![优化后](./gifs/HelpRects-after.gif)
 
+6.  React.forwardRef
+    > This is typically not necessary for most components in the application. However, it can be useful for some kinds of components, especially in reusable component libraries
 
+    `especially in resuable component`, 根据官网上面的例子, 使用这种方式去定义了我的 `HOC.js`中的组件, 但是没想到这却会引发一个潜在的性能问题(Really?).
+    更准确的说应该是一个 React 的 **bug** (Whatttttttt?).
+    在 React@16.3 中, 官方推出了`React.createContext` 这个 api , 它的使用方式是这样的: 
+    ```javascript
+      const M = React.createContext({})
+      
+      ...
+      class App {
+        render(){
+          return <M.Provider value={this.state}>
+                  <Inner>
+                </M.Provider>
+        }
+      }
+      ...
+
+      <!-- 在内部组件中使用 -->
+      
+      const SomeComponent = () => <M.Consumer>
+                        {
+                          ({}) => <div>{this.props.children}</div>
+                        }
+                        </M.Consumer>
+    ```
+    借助它, 我们可以不必通过 `props` 来传递 `Root` 组件的 `state`. 
+
+    同样在 React@16.3 中推出的还有 `React.forwardRef`, 用它包装后的 `Component` , 传递的 `ref` 不会被直接使用, 而是可以通过回调交给被包装的 `Component`.
+    ```javascript
+     <!-- 官网例子: -->
+
+    function logProps(Component) {
+      class LogProps extends React.Component {
+        componentDidUpdate(prevProps) {
+          console.log('old props:', prevProps);
+          console.log('new props:', this.props);
+        }
+
+        render() {
+          const {forwardedRef, ...rest} = this.props;
+          return <Component ref={forwardedRef} {...rest} />;
+        }
+     }
+    return React.forwardRef((props, ref) => {
+      return <LogProps {...props} forwardedRef={ref} />;
+    });
+    }
+    ```
+    
+    这两者都是为了解决某个问题而推出的, 从而使 `React` 变得越来越好, 但这两个结合的时候, 我发现了一个 `Bug`
+
+    > 这里是示例的地址 `https://codesandbox.io/s/04393o3k6w`
+
+    ```js
+        
+        const OtherLogProps = logProps(OtherComponent)
+
+        class Inner extends React.PureComponent{
+          render() {
+            <!-- Forbidden 只初始化一次, 会阻止之后的props的更新 -->
+            return <Forbidden>
+                    <OtherLogProps>
+                      <ManyLevel>
+                        <SomeComponent />
+                      </ManyLevel>
+                    </OtherLogProps>
+                  </Forbidden>
+          }
+        }
+        
+
+    ```
+    此时 只要 `Root` 组件更新, 同时 `OtherLogProps` 下的某个组件(不论这个组件的层级有多深)使用了 `M.Consumer`来接受状态的话, `OtherLogProps` 就会接受到新的 `props`, 从而进行一轮 `rerender`.
+    不论这个 `OtherLogProps` 所在的层级是多么深, `LogProps` 这个节点总是会接受到 `React.forwardRef` 中的回调重新触发所传递的 props. 
+    
+    ### TODO: 研究它是如何做到的 
+
+    这两者的结合确实的导致了 `rerender` 的问题,  那么现在如何解决呢?
+    很简单: 
+          1. 将 `LogProps` 改为继承自 `React.PureComponent`
+          2. 或者 添加 `shouldComponentUpdate` 到 'LogProps` 中
+
+    但我相信这并不是 `React` 设计这两者的初衷, 因为不管如何改变`LogProps`, `React.forwardRef` 中的这个回调总是会被调用(这也是会影响一些性能), 而造成的结果就是**隐式触发**特定组件的更新.  在我看来,这是违反`声明式`这一 `React` 设计准则的, 使得`React`混淆了之前清晰的更新策略. 当初 `context` 在官网中特意声明的是这种从父组件"隐式传递" 状态的方式是不对的, 而现在这个是 **父组件更新, 导致某个使用了特定api子组件更新 **, 所以我认为这是一个 **bug**;
+
+7. 如果使用了 `getDerivedStateFromProps` 那么 以 `UNSAFE_` 作为开头的 `lifecycle` 方法都不会被调用
+8. 
 # 代码重构
 1.  Slider
   - 单一原则:

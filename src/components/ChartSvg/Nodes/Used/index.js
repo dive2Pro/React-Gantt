@@ -2,6 +2,7 @@ import React from "react";
 import HightLightPoint from "./HightLightPoint";
 const UsedView = ({ color, dataItem: { highlightPoints }, highlightColor, ...rest }) => {
   const {renderHoverComponent, calcWidth, startTime,usedTime, ...rectProps } = rest
+  console.log('color')
   return (
     <React.Fragment>
       <rect fill={color} {...rectProps} />

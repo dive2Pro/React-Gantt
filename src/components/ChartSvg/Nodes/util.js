@@ -40,3 +40,9 @@ export function partialRight(fn, ...rightArgs) {
     return fn.apply(null, args.concat(rightArgs));
   };
 }
+
+export function partialLeft(fn, ...leftArgs) {
+  return function call(...args) {
+    return fn.apply(null, leftArgs.concat(args));
+  };
+}

@@ -53,7 +53,7 @@ class HelpRects extends React.Component {
               <ColumnLine
                 key={'column - ' + c}
                 initialWidth={initialWidth}
-                h={chartHeight}
+                h={h * rows}
                 i={c}
               />
             );
