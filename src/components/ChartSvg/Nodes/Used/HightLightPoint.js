@@ -1,26 +1,30 @@
 import React from "react";
-import { callAll, getUsedPositions } from "../util";
-import { Types, DEFAULT_EMPTYELEMENT } from "../../../constants";
+import { callAll, calcTimeDelta } from "../util";
+import { Types, DEFAULT_EMPTYELEMENT, stateConsumerProps } from "../../../constants";
+
+const Ellipse = stateConsumerProps(function Ellipse({ color, r, time, y, proption, calcWidth, dateTime }) {
+  const timeWidth = calcTimeDelta(time, dateTime)
+  const startX = calcWidth(timeWidth, proption);
+  return <ellipse
+    fill={color}
+    rx={r}
+    ry={r}
+    cx={startX + r}
+    cy={r + y}
+  />
+}
+)
+
 const HightLightPoint = ({
   data,
-  renderHoverComponent,
-  x,
+  Container,
   y,
   height,
   startTime,
-  calcWidth,
   color,
-  ...rest
+  timeStartPoint,
 }) => {
-  let Container
-    = renderHoverComponent.apply(null, [
-      Types.HIGHLIGHT,
-      data,
-      ...rest
-    ]);
-  if (!React.isValidElement(Container)) {
-    Container = <DEFAULT_EMPTYELEMENT />;
-  }
+
   const { time, onClick, getHighLightProps = () => ({}) } = data;
   function innerGetProps() {
     const { className = " ", ...rest } = getHighLightProps(data);
@@ -29,23 +33,16 @@ const HightLightPoint = ({
       ...rest
     };
   }
-  const { timeWidth } = getUsedPositions({
-    startTime: startTime,
-    endTime: time
-  });
+  const timeWidth = calcTimeDelta(time,
+    startTime
+  )
 
-  const startX = calcWidth(timeWidth) + x,
-    startY = height / 2,
-    r = height / 2;
+  const r = height / 2;
 
   const children = (
     <g {...innerGetProps()} onClick={callAll(onClick)}>
-      <ellipse
-        fill={color}
-        rx={r}
-        ry={r}
-        cx={startX + r}
-        cy={startY + y}
+      <Ellipse r={r} color={color} time={time}
+        y={y}
       />
     </g>
   );

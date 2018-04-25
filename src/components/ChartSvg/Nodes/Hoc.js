@@ -1,9 +1,11 @@
 import React from "react";
-import { dateToMilliseconds, getUsedPositions, partialRight } from "./util";
+import { dateToMilliseconds, getUsedPositions, partialRight, calcTimeDelta} from "./util";
 import {
   GanttStateContext,
   dayMillisedons,
   GanttValueStaticContext,
+  DEFAULT_EMPTYELEMENT,
+  Types
 } from "../../constants";
 
 const calcHoc = Comp => {
@@ -19,74 +21,86 @@ const calcHoc = Comp => {
         fontSize,
         timeoutColors,
         ontimeColors,
-        awaitColor,
-        ...rest
+        awaitColor, renderHoverComponent,
+        y,
+        h,
+        // ...rest
       } = this.props
       console.log('should not rerender')
       const { usedTime, avarageValue } = dataItem;
       const awaitStart = dateToMilliseconds(awaitStartTime);
       const awaitEnd = dateToMilliseconds(usedTime.startTime);
+      let TaskHoverContainer = renderHoverComponent.apply(null, [
+        Types.TASK,
+        dataItem
+      ]);
 
-      let awaitWidth;
-      const Consumer = readOnly ? GanttValueStaticContext.Consumer : GanttStateContext.Consumer
+      let AwaitHoverContainer = renderHoverComponent.apply(null, [
+        Types.AWAIT,
+        dataItem
+      ]);
+
+
+      if (!React.isValidElement(TaskHoverContainer)) {
+        TaskHoverContainer = <DEFAULT_EMPTYELEMENT />;
+      }
+      if (!React.isValidElement(AwaitHoverContainer)) {
+        AwaitHoverContainer = <DEFAULT_EMPTYELEMENT />;
+      }
+
+      const HightLightContainers = {};
+      (dataItem.highlightPoints || []).map((p, i) => {
+        let Container = renderHoverComponent.apply(null, [
+          Types.HIGHLIGHT,
+          p
+        ]);
+
+        if (!React.isValidElement(Container)) {
+          Container = <DEFAULT_EMPTYELEMENT />;
+        }
+        HightLightContainers[p.time] = Container
+      })
+
+      const Consumer = readOnly ? GanttValueStaticContext.Consumer : GanttStateContext.Consumer;
       return (
         <Consumer>
           {(value) => {
             let {
-              proption,
-              dateTime,
-              transform,
-              xLeft,
-              ...restState
+              proption,  // 不传
+              dateTime,  // 不传传 props
+              calcWidth, // no
             } = readOnly ? value.props : value;
-            const { timeStartPoint, timeWidth } = getUsedPositions(
-              usedTime,
-              dateTime
-            );
 
-            transform = readOnly ? "" : transform;
-            proption = readOnly ? 1 : proption;
+            const timeStartPoint = calcTimeDelta(usedTime.startTime, dateTime); // 传 props
 
-            function calcWidth(time) {
-              return time / dayMillisedons * xAxisWidth / proption;
-            }
+            const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); // 传 props
 
-            const usedWidth = calcWidth(timeWidth);
-            const avarageWidth = calcWidth(avarageValue);
-            const x = calcWidth(timeStartPoint);
-            if (Number.isNaN(x)) {
-              console.log(usedTime, dateTime)
-            }
-            if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
-              awaitWidth = 0;
-            } else {
-              awaitWidth = calcWidth(awaitEnd - awaitStart);
-            }
-
+            proption = readOnly ? 1 : proption;    // No
 
             const color =
-              avarageWidth > usedWidth ? ontimeColors : timeoutColors;
-
+              avarageValue > timeWidth ? ontimeColors : timeoutColors; // Yes
 
             return (
               <g
-                transform={transform}
                 fontSize={fontSize}
               >
                 <Comp
-                  x={x}
-                  fontSize={fontSize}
-                  color={color}
-                  awaitColor={awaitColor}
-                  usedWidth={usedWidth}
-                  avarageWidth={avarageWidth}
                   dataItem={dataItem}
-                  awaitWidth={awaitWidth}
-                  usedTime={usedTime}
-                  calcWidth={calcWidth}
-                  xLeft={xLeft / proption}
-                  startTime={awaitEnd}
-                  {...rest}
+                  y={y}                  
+                  awaitColor={awaitColor}
+                  color={color}
+                  h={h}
+                  awaitStartTime={awaitStartTime}
+                  awaitStart={awaitStart}
+                  awaitEnd={awaitEnd}
+                  fontSize={fontSize}
+                  avarageValue={avarageValue}
+                  usedTimeWidth={timeWidth}
+                  timeStartPoint={timeStartPoint}
+                  TaskHoverContainer={TaskHoverContainer}
+                  AwaitHoverContainer={AwaitHoverContainer}
+                  HightLightContainers={HightLightContainers}
+                  readOnly={readOnly}
                 />
               </g>
             );

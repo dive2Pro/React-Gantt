@@ -8,7 +8,8 @@ import {
   GanttContext,
   GanttValueStaticContext,
   Types,
-  DEFAULT_EMPTYELEMENT
+  DEFAULT_EMPTYELEMENT,
+  dayMillisedons
 } from "./components/constants";
 import P from "prop-types";
 
@@ -85,7 +86,13 @@ export default class ReactGantt extends React.PureComponent {
         }, {})
     });
   };
-
+  calcWidth = (time, proption) => {
+    const { xAxisWidth } = this.props
+    return time /
+      dayMillisedons // N
+      * xAxisWidth // N
+      / proption;
+  }
   render() {
     const {
       timeoutColors,
@@ -93,19 +100,22 @@ export default class ReactGantt extends React.PureComponent {
       awaitColor,
       ...rest
     } = this.props;
-    this._staticProps.props = { ...this._staticProps.props , ...this.props };
+    this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth };
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     const { xLeft, proption } = this.state;
     const transform = `translate( ${xLeft * -1 / proption}, 0)`;
     const { xAxisWidth, leftWidth } = rest;
-    
+
     return (
-      <GanttContext.Provider value={this.props}>
+      <GanttContext.Provider value={{
+        transform,
+        ...this.props
+      }}>
         <GanttValueStaticContext.Provider value={this._staticProps}>
           <GanttStateContext.Provider
             value={{
               ...this.state,
-              transform,
+              calcWidth: this.calcWidth,
             }}
           >
             <React.Fragment>

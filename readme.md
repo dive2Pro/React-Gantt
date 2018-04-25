@@ -240,10 +240,9 @@
 2.  dragging handler 花费时间过多, 即使是在 `build` 的环境中 依然会很卡
     - 代码中, 目前的操作会导致的更新, 主要是 `XAxis` 中的 每一个svg 图形的 `style` , 也就是 `transform` 和 `width`.
     - 目的是减少 rerender 的操作, 可通过 `throttle` 或者 [更新 style element](https://github.com/atlassian/react-beautiful-dnd/blob/0fb4dc75ea9b625f64cac48602635ac2822f26ec/src/view/style-marshal/style-marshal.js) 等方式
-3.  当前使用的方式是 `throttle` , 遇到的问题是这个 `间隔值` 并不好设置. 而且在 `data`变化到比较大的时候, 每一次都要 rerender`o(data.length * N)`次, 这会导致 很严重的 性能问题.
-    考虑 2 种方式去解决: 
-      1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
-      2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+3.  ~~~当前使用的方式是 `throttle` , 遇到的问题是这个 `间隔值` 并不好设置. 而且在 `data`变化到比较大的时候, 每一次都要 rerender`o(data.length * N)`次, 这会导致 很严重的 性能问题.~~~
+    修改为 mousemove handle
+
 4.  造成这种现象的主要的问题是**过度渲染**. 在现在的代码中, 渲染的复杂度是 根据 `HelpRects`的 **`O(n*column^data.length)`**. 
     但实际上, 达到同样的目的 只需要 渲染 `column + data.length` 条线段即可达到目的
 5.  在 React 中 渲染同样的数组, 更细粒度的划分组件, 得到的结果性能更优
@@ -420,7 +419,20 @@
 
 7. 如果使用了 `getDerivedStateFromProps` 那么 以 `UNSAFE_` 作为开头的 `lifecycle` 方法都不会被调用
 8. `OnlyRenderOnce` 使用 `shouldComponentUpdate` 来避免 状态更新, 但如果在一个很长的列表中, 每一个都去判断, 这也是会造成一些性能上的损失. 可以寻找其他方式替代, 比如改变 他们的 `parent` 的更新策略
-9.  
+9. `xLeft` 和 `proption` 的改变, 组件更新耗费了太多的计算资源, 但是这两个的改变只是针对 某个特定`Element`的属性, 不需要重新计算非该 属性的值
+    所以:
+        优化渲染计算,抽取共通属性, 将更新触发到更细分的组件, 
+        优化前:
+        ![优化前](./images/XAxis-before.png)
+        优化后:
+        ![优化后](./images/XAxis-after.png)
+        
+        整体的 js 计算 以及减少了很多, 但**recaculate style** , 这一部分计算太多, 导致现在的帧数平均还是在 20-30 之间
+         
+    考虑 2 种方式去解决: 
+      1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
+      2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+
 # 代码重构
 1.  Slider
   - 单一原则:

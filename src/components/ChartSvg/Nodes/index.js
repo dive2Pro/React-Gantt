@@ -13,6 +13,7 @@ export default class Nodes extends React.Component {
       <GanttContext.Consumer>
         {({ data, lineHeight: h, xAxisWidth,
         renderHoverComponent,
+         transform,
          slideHeight, ...rest }) => {
           const ary = [];
           const dataLength = data.length;
@@ -44,8 +45,10 @@ export default class Nodes extends React.Component {
               />
             );
           }
+          transform = readOnly ? "" : transform; // No
+          
           return (
-            <g id={`tasks-${readOnly ? String("readOnly") : ""}`}>{ary}</g>
+            <g id={`tasks-${readOnly ? String("readOnly") : ""}`} transform={transform}>{ary}</g>
           );
         }}
       </GanttContext.Consumer>

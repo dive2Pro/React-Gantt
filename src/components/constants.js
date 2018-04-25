@@ -8,6 +8,26 @@ export const GanttContext = React.createContext({});
 export const GanttStateContext = React.createContext({});
 export const GanttValueStaticContext = React.createContext({});
 
+export const stateConsumerProps = (Component) => {
+
+  const Wrapper = ({ innerRef, readOnly, ...props }) => {
+    const Consumer = readOnly ? GanttValueStaticContext.Consumer : GanttStateContext.Consumer;
+
+    return <Consumer>
+      {
+        (value) => {
+          return <Component ref={innerRef} {...props} {...
+            readOnly ? value.props : value} />
+        }
+
+      }
+    </Consumer>
+  }
+
+  Wrapper.displayName = `StateConsumer:( ${Component.displayName || Component.name || Component} )`
+
+  return Wrapper
+}
 export const columns = 48;
 
 export const Types = {
@@ -61,7 +81,7 @@ export const HalfHours = [
 ]
 
 
-export  const lineProps = {
+export const lineProps = {
   stroke: "blue",
   strokeWidth: 0.2,
   strokeOpacity: 0.5,
