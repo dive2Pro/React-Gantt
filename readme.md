@@ -427,16 +427,28 @@
         优化后:
         ![优化后](./images/XAxis-after.png)
         
-        整体的 js 计算 以及减少了很多, 但**recaculate style** , 这一部分计算太多, 导致现在的帧数平均还是在 20-30 之间
-         
-    考虑 2 种方式去解决: 
-      1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
-      2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+        **Recaculate style** , 这一部分计算太多, 导致现在的帧数平均还是在 20-30 之间, 但是整体的 js 计算 已经减少了很多, 下一步优化 `Recaculate style` 这部分.
 
+        
+
+    > 考虑 2 种方式去解决: 
+        1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
+        2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+10. 减少 `Recaculate style`
+    1. 分析:
+        1. 目前所有的 `SVG`图案的渲染都和 `proption`有关, `transform` 只影响最外层的 `g` 节点, 并不会对性能有什么影响.
+        2. `proption` 影响到的组件有自己的 style 改变方式, 所以, 把这一部分抽取出来
+        3. 每一次 `proption` 的改变, 不再触发 各个`Element`组件的更新, 而是直接改变`style Element`属性 
+    4. 策略:
+        5. 每个 `Element` 渲染时, 标记它, 并联合它的更新策略放入 一个 `Map` 中, 这个策略会返回它需要的 `style`
+        6. 下一次`state` 改变时, 传入 `proption`, 得到新的 `css `, 并挂载到 `style Element` 中
+    7. 实际:
+        8. 修改后 fps 有明显的提高, 目前的 fps 可以保持在 34 左右的样子. 不过还有进步空间, 由于 `line` 和 `text` 这两个`svg` 元素 , 好像没有办法通过 `css`修改 他们的 'inline-style' 
+        9. TODO: 修改 上面两个元素  
 # 代码重构
 1.  Slider
   - 单一原则:
     1.  抽出 Dragger 组件, 处理 `drag` 事件, 处理回调
     2.  抽出 Dragging 组件, 处理 Dragger 组件中的回调出来的数值并处理出 `startPercent` 和 `percent`
-      - abstract props :
-    1. 
+2.  XAxis
+  - 抽取组件     

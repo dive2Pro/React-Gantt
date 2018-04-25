@@ -96,7 +96,7 @@ class App extends React.PureComponent {
             .concat(DATA)
             .concat(DATA)
         )}
-        chartHeight={700}
+        chartHeight={500}
         proption={0.4}
         startX={200}
         date={"2018-4-21"}

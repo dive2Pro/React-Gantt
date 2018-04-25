@@ -16,10 +16,12 @@ export const stateConsumerProps = (Component) => {
     return <Consumer>
       {
         (value) => {
-          return <Component ref={innerRef} {...props} {...
-            readOnly ? value.props : value} />
+          const state = readOnly ? value.props : value
+          return <Component ref={innerRef} {...props} {...state
+          }
+            proption={readOnly ? 1 : state.proption}
+            readOnly={readOnly} />
         }
-
       }
     </Consumer>
   }
@@ -28,6 +30,28 @@ export const stateConsumerProps = (Component) => {
 
   return Wrapper
 }
+
+export const valueStaticProps = Component => {
+  const Wrapper = ({ innerRef, ...props }) => {
+    const Consumer = GanttValueStaticContext.Consumer
+    return <Consumer>
+      {
+        (value) => {
+          const { proption, ...state } = value.props
+          return <Component ref={innerRef} {...props} {...state}
+            proption={props.readOnly  ? 1 : proption}
+
+          />
+        }
+      }
+    </Consumer>
+  }
+
+  Wrapper.displayName = `StateConsumer:( ${Component.displayName || Component.name || Component} )`
+
+  return Wrapper
+}
+
 export const columns = 48;
 
 export const Types = {

@@ -1,16 +1,27 @@
 import React from "react";
 import { callAll, calcTimeDelta } from "../util";
-import { Types, DEFAULT_EMPTYELEMENT, stateConsumerProps } from "../../../constants";
+import { Types, DEFAULT_EMPTYELEMENT, valueStaticProps } from "../../../constants";
 
-const Ellipse = stateConsumerProps(function Ellipse({ color, r, time, y, proption, calcWidth, dateTime }) {
-  const timeWidth = calcTimeDelta(time, dateTime)
-  const startX = calcWidth(timeWidth, proption);
+
+const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, calcWidth, parentId, readOnly, dateTime, sm }) {
+  function calcStyle(proption) {
+    const timeWidth = calcTimeDelta(time, dateTime)
+    const startX = calcWidth(timeWidth, proption);
+    
+    return {
+      cx: startX + r,
+    }
+  }
+  const id =  parentId + '' + time
+  const inlinecss = sm && readOnly ? (sm.add(id, calcStyle), {}) : calcStyle(proption);
+  
   return <ellipse
+    data-gantt-id={ readOnly || id}
     fill={color}
     rx={r}
     ry={r}
-    cx={startX + r}
     cy={r + y}
+    {...inlinecss}
   />
 }
 )
@@ -23,6 +34,8 @@ const HightLightPoint = ({
   startTime,
   color,
   timeStartPoint,
+  parentId,
+  readOnly,
 }) => {
 
   const { time, onClick, getHighLightProps = () => ({}) } = data;
@@ -41,7 +54,8 @@ const HightLightPoint = ({
 
   const children = (
     <g {...innerGetProps()} onClick={callAll(onClick)}>
-      <Ellipse r={r} color={color} time={time}
+      <Ellipse parentId={parentId} r={r} color={color} time={time}
+      readOnly={readOnly}
         y={y}
       />
     </g>

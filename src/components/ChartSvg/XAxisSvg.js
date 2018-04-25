@@ -6,7 +6,7 @@ export default class XAxisSvg extends React.PureComponent {
   render() {
     const { leftWidth } = this.props;
     return (
-      <svg x={leftWidth}>
+      <svg x={leftWidth} id="gantt-xaxis">
         <HelpRects />
         <defs>{React.createElement(Nodes, { readOnly: true })}</defs>
         {React.createElement(Nodes)}
