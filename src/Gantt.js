@@ -6,6 +6,7 @@ import {
   moment,
   GanttStateContext,
   GanttContext,
+  GanttValueStaticContext,
   Types,
   DEFAULT_EMPTYELEMENT
 } from "./components/constants";
@@ -33,7 +34,7 @@ export default class ReactGantt extends React.PureComponent {
     data: [],
     renderHoverComponent: DEFAULT_EMPTYELEMENT,
     timeoutColors: {
-     
+
       used: "hsl(100, 77%, 44%)",
       avarage: "hsl(103, 77%, 53%)",
       highlight: "red"
@@ -58,12 +59,15 @@ export default class ReactGantt extends React.PureComponent {
     dateTime: getDayMilliseconds(this.props.date),
   };
   state = this.initialState;
-  constructor(props){
+  constructor(props) {
     super(props)
-    this._staticProps = props;
+
+    this._staticProps = { props: { ...props, ...this.initialState } };
+    console.log(this._staticProps)
   }
+
   handleChange = args => {
-    if(args.xLeft) {
+    if (args.xLeft) {
       // return;
     }
     this.setState({
@@ -73,58 +77,62 @@ export default class ReactGantt extends React.PureComponent {
         })
         .reduce((newObj, key) => {
           newObj[key] = args[key]
-          if(key === 'proption' && !newObj[key]) {
+          if (key === 'proption' && !newObj[key]) {
             newObj[key] = 0.00002
           }
           return newObj
 
-    }, {})
-  });
-};
+        }, {})
+    });
+  };
 
-render() {
-  const {
-    timeoutColors,
-    ontimeColors,
-    awaitColor,
-    ...rest
-  } = this.props;
-
-  // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
-  const { xLeft, proption } = this.state;
-  const transform = `translate( ${xLeft * -1 / proption}, 0)`;
-  const { xAxisWidth, leftWidth } = rest;
-  return (
-    <GanttContext.Provider value={this.props}>
-      <GanttStateContext.Provider
-        value={{
-          ...this.state,
-          transform,
-        }}
-      >
-        <React.Fragment>
-          <div
-            className="chart-container"
-            style={{
-              height: this.props.chartHeight,
-              width: xAxisWidth + leftWidth,
-              overflowY: "auto",
-              overflowX: "hidden"
+  render() {
+    const {
+      timeoutColors,
+      ontimeColors,
+      awaitColor,
+      ...rest
+    } = this.props;
+    this._staticProps.props = { ...this._staticProps.props , ...this.props };
+    // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
+    const { xLeft, proption } = this.state;
+    const transform = `translate( ${xLeft * -1 / proption}, 0)`;
+    const { xAxisWidth, leftWidth } = rest;
+    
+    return (
+      <GanttContext.Provider value={this.props}>
+        <GanttValueStaticContext.Provider value={this._staticProps}>
+          <GanttStateContext.Provider
+            value={{
+              ...this.state,
+              transform,
             }}
           >
-            <ChartSvg {...this.props} {...this.state} transform={transform} />
-          </div>
-          <Graduation {...rest} {...this.state} transform={transform} />
-          <Slide {...rest} {...this.state} onStateChange={this.handleChange}>
-            <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
-              <use xlinkHref="#tasks-readOnly" x={leftWidth} y={0} />
-            </svg>
-          </Slide>
-        </React.Fragment>
-      </GanttStateContext.Provider>
-    </GanttContext.Provider>
-  );
-}
+            <React.Fragment>
+              <div
+                className="chart-container"
+                style={{
+                  height: this.props.chartHeight,
+                  width: xAxisWidth + leftWidth,
+                  overflowY: "auto",
+                  overflowX: "hidden"
+                }}
+              >
+                <ChartSvg {...this.props} {...this.state} transform={transform} />
+              </div>
+              <Graduation {...rest} {...this.state} transform={transform} />
+              <Slide {...rest} {...this.state} onStateChange={this.handleChange}>
+                <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
+                  <use xlinkHref="#tasks-readOnly" x={leftWidth} y={0} />
+                </svg>
+              </Slide>
+            </React.Fragment>
+          </GanttStateContext.Provider>
+        </GanttValueStaticContext.Provider>
+
+      </GanttContext.Provider>
+    );
+  }
 }
 
 ReactGantt.propTypes = {

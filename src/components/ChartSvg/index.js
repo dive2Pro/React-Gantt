@@ -1,6 +1,7 @@
 import React from "react";
 import YAxisSvg from "./YAxisSvg";
 import XAxisSvg from "./XAxisSvg";
+import {GanttValueStaticContext} from '../constants'
 class Chart extends React.Component {
   shouldComponentUpdate() {
     return false;
@@ -11,6 +12,14 @@ class Chart extends React.Component {
       <svg width={leftWidth + xAxisWidth} height={lineHeight * data.length}>
         <YAxisSvg {...this.props} />
         <XAxisSvg leftWidth={leftWidth} />
+        <GanttValueStaticContext.Consumer>
+          {
+            () => {
+              console.log('-- rerender')
+              return 'asd'
+            }
+          }
+          </GanttValueStaticContext.Consumer>
       </svg>
     );
   }

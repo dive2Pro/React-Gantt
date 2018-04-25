@@ -24,7 +24,8 @@ const TaskItems =
     const usedH = h / 4;
     // console.log(" taskItems");
     const { avarage, used, highlight } = color;
-    let HoverContainer = renderHoverComponent.apply(null, [
+    let HoverContainer 
+    = renderHoverComponent.apply(null, [
       Types.TASK,
       dataItem,
       used

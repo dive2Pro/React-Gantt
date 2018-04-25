@@ -10,7 +10,9 @@ const Await = ({
   renderHoverComponent,
   dataItem
 }) => {
-  const Container = renderHoverComponent(Types.AWAIT, dataItem, color) || (
+  const Container = 
+  renderHoverComponent(Types.AWAIT, dataItem, color) ||
+   (
     <DEFAULT_EMPTYELEMENT />
   );
   const x1 = endX - width,

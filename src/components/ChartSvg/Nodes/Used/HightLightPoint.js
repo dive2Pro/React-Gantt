@@ -12,11 +12,12 @@ const HightLightPoint = ({
   color,
   ...rest
 }) => {
-  let Container = renderHoverComponent.apply(null, [
-    Types.HIGHLIGHT,
-    data,
-    ...rest
-  ]);
+  let Container
+    = renderHoverComponent.apply(null, [
+      Types.HIGHLIGHT,
+      data,
+      ...rest
+    ]);
   if (!React.isValidElement(Container)) {
     Container = <DEFAULT_EMPTYELEMENT />;
   }

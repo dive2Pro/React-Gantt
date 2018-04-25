@@ -6,6 +6,8 @@ export const dayMillisedons = 1000 * 3600 * 24;
 
 export const GanttContext = React.createContext({});
 export const GanttStateContext = React.createContext({});
+export const GanttValueStaticContext = React.createContext({});
+
 export const columns = 48;
 
 export const Types = {
