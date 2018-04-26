@@ -1,120 +1,121 @@
 import React from "react";
-import { dateToMilliseconds, getUsedPositions, partialRight } from "./util";
+import { dateToMilliseconds, getUsedPositions, partialRight, calcTimeDelta} from "./util";
 import {
   GanttStateContext,
   dayMillisedons,
-  DEFAULT_EMPTYELEMENT
+  GanttValueStaticContext,
+  DEFAULT_EMPTYELEMENT,
+  Types
 } from "../../constants";
 
-class OnlyRenderOnce extends React.Component {
-  shouldComponentUpdate() {
-    return !this.props.readOnly;
-  }
-
-  render() {
-    // console.log(' this.props = ' , this.props.readOnly)
-    return <React.Fragment>{this.props.children()}</React.Fragment>;
-  }
-}
-
 const calcHoc = Comp => {
-  const Wrapper = ({
-    dataItem,
-    xAxisWidth,
-    h,
-    i,
-    awaitStartTime,
-    readOnly,
-    minLineHeight,
-    dataLength,
-    renderHoverComponent,
-  
-    ...rest
-  }) => {
-    const { usedTime, avarageValue } = dataItem;
-    const awaitStart = dateToMilliseconds(awaitStartTime);
-    const awaitEnd = dateToMilliseconds(usedTime.startTime);
+  class Wrapper extends React.PureComponent {
+    render() {
+      const {
+        dataItem,
+        xAxisWidth,
+        awaitStartTime,
+        readOnly,
+        minLineHeight,
+        dataLength,
+        fontSize,
+        timeoutColors,
+        ontimeColors,
+        awaitColor, renderHoverComponent,
+        y,
+        h,
+        // ...rest
+      } = this.props
+      console.log('should not rerender')
+      const { usedTime, avarageValue } = dataItem;
+      const awaitStart = dateToMilliseconds(awaitStartTime);
+      const awaitEnd = dateToMilliseconds(usedTime.startTime);
+      let TaskHoverContainer = renderHoverComponent.apply(null, [
+        Types.TASK,
+        dataItem
+      ]);
 
-    return (
-      <GanttStateContext.Consumer>
-        {({
-          proption,
-          dateTime,
-          transform,
-          slideHeight,
-          xLeft,
-          awaitColor,
-          ontimeColors,
-          timeoutColors,
-          ...restState
-        }) => {
-          return (
-            <OnlyRenderOnce readOnly={readOnly}>
-              {() => {
-                const { timeStartPoint, timeWidth } = getUsedPositions(
-                  usedTime,
-                  dateTime
-                );
-                const fontSize = readOnly ? 0 : 12;
-                const height = readOnly ? slideHeight / dataLength : h;
-                transform = readOnly ? "" : transform;
-                proption = readOnly ? 1 : proption;
+      let AwaitHoverContainer = renderHoverComponent.apply(null, [
+        Types.AWAIT,
+        dataItem
+      ]);
 
-                function calcWidth(time) {
-                  return time / dayMillisedons * xAxisWidth / proption;
-                }
 
-                const usedWidth = calcWidth(timeWidth);
-                const avarageWidth = calcWidth(avarageValue);
-                const x = calcWidth(timeStartPoint);
+      if (!React.isValidElement(TaskHoverContainer)) {
+        TaskHoverContainer = <DEFAULT_EMPTYELEMENT />;
+      }
+      if (!React.isValidElement(AwaitHoverContainer)) {
+        AwaitHoverContainer = <DEFAULT_EMPTYELEMENT />;
+      }
 
-                const y = i * height;
-                const color =
-                  avarageWidth > usedWidth ? ontimeColors : timeoutColors;
+      const HightLightContainers = {};
+      (dataItem.highlightPoints || []).map((p, i) => {
+        let Container = renderHoverComponent.apply(null, [
+          Types.HIGHLIGHT,
+          p
+        ]);
 
-                let awaitWidth;
+        if (!React.isValidElement(Container)) {
+          Container = <DEFAULT_EMPTYELEMENT />;
+        }
+        HightLightContainers[p.time] = Container
+      })
 
-                if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
-                  awaitWidth = 0;
-                } else {
-                  awaitWidth = calcWidth(awaitEnd - awaitStart);
-                }
-                renderHoverComponent = readOnly
-                  ? DEFAULT_EMPTYELEMENT
-                  : renderHoverComponent;
-                return (
-                  <Comp
-                    x={x}
-                    color={color}
-                    awaitColor={awaitColor}
-                    usedWidth={usedWidth}
-                    avarageWidth={avarageWidth}
-                    h={height}
-                    y={y}
-                    dataItem={dataItem}
-                    awaitWidth={awaitWidth}
-                    usedTime={usedTime}
-                    calcWidth={calcWidth}
-                    fontSize={fontSize}
-                    transform={transform}
-                    xLeft={xLeft / proption}
-                    renderHoverComponent={renderHoverComponent}
-                    startTime={awaitEnd}
-                  />
-                );
-              }}
-            </OnlyRenderOnce>
-          );
-        }}
-      </GanttStateContext.Consumer>
-    );
-  };
+      const Consumer = readOnly ? GanttValueStaticContext.Consumer : GanttStateContext.Consumer;
+      return (
+        <Consumer>
+          {(value) => {
+            let {
+              dateTime,  // 不传传 props
+              calcWidth, // no
+            } = readOnly ? value.props : value;
+
+            const timeStartPoint = calcTimeDelta(usedTime.startTime, dateTime); // 传 props
+
+            const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); // 传 props
+
+
+            const color =
+              avarageValue > timeWidth ? ontimeColors : timeoutColors; // Yes
+
+            return (
+              <g
+                fontSize={fontSize}
+              >
+                <Comp
+                  dataItem={dataItem}
+                  y={y}                  
+                  awaitColor={awaitColor}
+                  color={color}
+                  h={h}
+                  awaitStartTime={awaitStartTime}
+                  awaitStart={awaitStart}
+                  awaitEnd={awaitEnd}
+                  fontSize={fontSize}
+                  avarageValue={avarageValue}
+                  usedTimeWidth={timeWidth}
+                  timeStartPoint={timeStartPoint}
+                  TaskHoverContainer={TaskHoverContainer}
+                  AwaitHoverContainer={AwaitHoverContainer}
+                  HightLightContainers={HightLightContainers}
+                  readOnly={readOnly}
+                />
+              </g>
+            );
+          }
+          }
+        </Consumer>
+      );
+    };
+  }
+
   function forwardRef(props, ref) {
     return <Wrapper {...props} forwardedRef={ref} />;
   }
   const name = Comp.displayName || Comp.name;
   forwardRef.displayName = `calcProps(${name})`;
-  return React.forwardRef(forwardRef);
+  // return React.forwardRef(forwardRef);
+  return Wrapper
 };
 
 export default calcHoc;

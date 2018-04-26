@@ -1,29 +1,31 @@
 import { moment } from "../../constants";
 
-/**
- *
- */
-export const getUsedPositions = (usedTime, initialTime) => {
-  const { startTime, endTime } = usedTime;
-  const startMilliseconds = dateToMilliseconds(startTime);
-  const endMilliseconds = dateToMilliseconds(endTime);
-  const deltaTime = startMilliseconds - initialTime;
-  const timeStartPoint = deltaTime;
-  const timeWidth = endMilliseconds - startMilliseconds;
-
-  return {
-    timeStartPoint,
-    timeWidth
-  };
-};
-
-
-export const dateToMilliseconds = date => {
+function helpDate(date) {
   if(typeof date === 'string'){
     date = date.replace(/,/ , "")
     date = date.replace(/: / ,":")
   }
-const result =  moment(date).valueOf();
+  return date;
+}
+
+const timeWidthCache = {}
+
+export const calcTimeDelta = (startTime, initialTime)=> {
+  
+  const name = startTime + ' - ' +initialTime
+  if(timeWidthCache[name]) {
+    return timeWidthCache[name]
+  }
+  const result =  dateToMilliseconds(startTime) - dateToMilliseconds(initialTime)
+  timeWidthCache[name] = result
+  return result;
+}
+
+
+
+export const dateToMilliseconds = date => {
+  date = helpDate(date);
+  const result =  moment(date).valueOf();
   return result;
 } 
 
@@ -38,5 +40,11 @@ export function callAll(...fns) {
 export function partialRight(fn, ...rightArgs) {
   return function call(...args) {
     return fn.apply(null, args.concat(rightArgs));
+  };
+}
+
+export function partialLeft(fn, ...leftArgs) {
+  return function call(...args) {
+    return fn.apply(null, leftArgs.concat(args));
   };
 }

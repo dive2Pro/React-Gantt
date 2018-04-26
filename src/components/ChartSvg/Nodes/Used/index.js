@@ -1,13 +1,39 @@
 import React from "react";
 import HightLightPoint from "./HightLightPoint";
-const UsedView = ({ color, dataItem: { highlightPoints }, highlightColor, ...rest }) => {
-  const {renderHoverComponent, calcWidth, startTime,usedTime, ...rectProps } = rest
+import { valueStaticProps } from '../../../constants'
+
+const UserRect = valueStaticProps(function UserRect({ timeWidth, timeStartPoint,
+  calcWidth, proption, transform, sm, parentId, x, width, readOnly, ...rectProps }) {
+  const id =  parentId + '-userrect-' + timeStartPoint
+  function calcCss(proption) {
+    return {
+      x: calcWidth(timeStartPoint, proption),
+      width: calcWidth(timeWidth, proption) + 'px'
+    }
+  }
+  const inlinecss = sm && !readOnly ? (sm.add(id, calcCss), {}) : calcCss(proption);
+  return <rect
+    data-gantt-id={readOnly || id}
+    {...inlinecss}
+    {...rectProps} />
+}
+)
+
+const UsedView = ({ color, dataItem: { highlightPoints, id }, highlightColor, ...rest }) => {
+  const { renderHoverComponent, calcWidth, startTime, usedTime, HightLightContainers, ...rectProps } = rest
   return (
     <React.Fragment>
-      <rect fill={color} {...rectProps} />
-      {(highlightPoints || [] ).map((p, i) => {
-        return <HightLightPoint key={p.time} data={p} color={highlightColor} 
-        {...rest} />;
+      <UserRect
+        parentId={id}
+        fill={color}
+        {...rectProps}
+      />
+      {(highlightPoints || []).map((p, i) => {
+        return <HightLightPoint
+          parentId={id}
+          Container={HightLightContainers[p.time]}
+          key={p.time} data={p} color={highlightColor}
+          {...rest} />;
       })}
     </React.Fragment>
   );

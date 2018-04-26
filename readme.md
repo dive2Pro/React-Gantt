@@ -185,9 +185,9 @@
     6.  每行的高度 | YAxis 的宽度 | 整个 组件所占 宽度 | XAxis 的高度
 3.  接受的 props 
       1. data required
-        ```
+        ```typescript
         {
-          id: string // ...
+          id: string, // ...
           name: string // 展示名, 展示在最高层
           usedTime: {
             startTime: number // 微秒
@@ -241,20 +241,223 @@
                 
 # 优化
 
-1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, 它的`Comsumer` 都会重新计算它的 `children()`
+1.  管理状态使用的是 `React.createContext`, 在 Component 中 如果重新 `render` , 此时 ~~~不论传给 `Provider` 的 `value` 值是什么, 是否是同一个值~~~ 只要 传递给 `Provider` 的 `value` 值不同, **这里要注意的是 `{...}` es6 中的解构操作, 他会生成一个新的对象**, 它的`Comsumer` 都会重新计算它的 `children()`
 2.  dragging handler 花费时间过多, 即使是在 `build` 的环境中 依然会很卡
     - 代码中, 目前的操作会导致的更新, 主要是 `XAxis` 中的 每一个svg 图形的 `style` , 也就是 `transform` 和 `width`.
     - 目的是减少 rerender 的操作, 可通过 `throttle` 或者 [更新 style element](https://github.com/atlassian/react-beautiful-dnd/blob/0fb4dc75ea9b625f64cac48602635ac2822f26ec/src/view/style-marshal/style-marshal.js) 等方式
-3.  当前使用的方式是 `throttle` , 遇到的问题是这个 `间隔值` 并不好设置. 而且在 `data`变化到比较大的时候, 每一次都要 rerender`o(data.length * N)`次, 这会导致 很严重的 性能问题.
-    考虑 2 种方式去解决: 
-      1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
-      2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+3.  ~~~当前使用的方式是 `throttle` , 遇到的问题是这个 `间隔值` 并不好设置. 而且在 `data`变化到比较大的时候, 每一次都要 rerender`o(data.length * N)`次, 这会导致 很严重的 性能问题.~~~
+    修改为 mousemove handle
+
 4.  造成这种现象的主要的问题是**过度渲染**. 在现在的代码中, 渲染的复杂度是 根据 `HelpRects`的 **`O(n*column^data.length)`**. 
     但实际上, 达到同样的目的 只需要 渲染 `column + data.length` 条线段即可达到目的
-    
+5.  在 React 中 渲染同样的数组, 更细粒度的划分组件, 得到的结果性能更优
+    在 `HelpRects` 组件中, 如果组件更新时,在 `render` 方法中 都重新生成一组 子组件 和  只更新子组件 相比, 帧数平均要高 `1~2` 帧    
+    这是 优化前的代码:
+    ```javascript
+         return (
+            <GanttStateContext.Consumer>
+              {({ proption, transform }) => {
+                const rows = data.length;
+                const originalWidth = xAxisWidth / columns;
+                let rects = [];
+                for (let r = 0; r < rows; r++) {
+                  rects.push(
+                    <line
+                      key={'row - ' + r}
+                      {...lineProps}
+                      x1="0"
+                      x2={xAxisWidth / proption}
+                      y1={r * h}
+                      y2={r * h}
+                    />
+                  );
+                }
+                for (let c = 0; c < columns; c++) {
+                  const x = originalWidth * c / proption;
+                  rects.push(
+                    <line
+                      key={'column - ' + c}
+                      {...lineProps}
+                      x1={x}
+                      x2={x}
+                      y1={0}
+                      y2={chartHeight}
+                    />
+                  );
+                }
+                return <g
+                  transform={transform}
+                  className="help-rects"> {rects}</g>;
+              }}
+    ```
+    帧数:
 
+    ![优化前](./gifs/HelpRects-before.gif)
+
+    这是优化后:
+
+    ```javascript
+    ...
+    render() {
+        ...
+          let rects = [];
+          const rows = data.length;
+          const initialWidth = xAxisWidth / columns;
+          for (let r = 0; r < rows; r++) {
+            rects.push(
+              <RowLine
+                key={'row - ' + r}
+                xAxisWidth={xAxisWidth}
+                y={r * h}
+              />
+            );
+          }
+          for (let c = 0; c < columns; c++) {
+            rects.push(
+              <ColumnLine
+                key={'column - ' + c}
+                initialWidth={initialWidth}
+                h={chartHeight}
+                i={c}
+              />
+            );
+          }
+          return (
+            <GanttStateContext.Consumer>
+              {({ proption, transform }) => {
+                return <g
+                  transform={transform}
+                  className="help-rects"> {
+                    rects
+                  }</g>;
+              }}
+            </GanttStateContext.Consumer>
+      ...
+    ```
+    ![优化后](./gifs/HelpRects-after.gif)
+
+6.  React.forwardRef
+    > This is typically not necessary for most components in the application. However, it can be useful for some kinds of components, especially in reusable component libraries
+
+    `especially in resuable component`, 根据官网上面的例子, 使用这种方式去定义了我的 `HOC.js`中的组件, 但是没想到这却会引发一个潜在的性能问题(Really?).
+    更准确的说应该是一个 React 的 **bug** (Whatttttttt?).
+    在 React@16.3 中, 官方推出了`React.createContext` 这个 api , 它的使用方式是这样的: 
+    ```javascript
+      const M = React.createContext({})
+      
+      ...
+      class App {
+        render(){
+          return <M.Provider value={this.state}>
+                  <Inner>
+                </M.Provider>
+        }
+      }
+      ...
+
+      <!-- 在内部组件中使用 -->
+      
+      const SomeComponent = () => <M.Consumer>
+                        {
+                          ({}) => <div>{this.props.children}</div>
+                        }
+                        </M.Consumer>
+    ```
+    借助它, 我们可以不必通过 `props` 来传递 `Root` 组件的 `state`. 
+
+    同样在 React@16.3 中推出的还有 `React.forwardRef`, 用它包装后的 `Component` , 传递的 `ref` 不会被直接使用, 而是可以通过回调交给被包装的 `Component`.
+    ```javascript
+     <!-- 官网例子: -->
+
+    function logProps(Component) {
+      class LogProps extends React.Component {
+        componentDidUpdate(prevProps) {
+          console.log('old props:', prevProps);
+          console.log('new props:', this.props);
+        }
+
+        render() {
+          const {forwardedRef, ...rest} = this.props;
+          return <Component ref={forwardedRef} {...rest} />;
+        }
+     }
+    return React.forwardRef((props, ref) => {
+      return <LogProps {...props} forwardedRef={ref} />;
+    });
+    }
+    ```
+    
+    这两者都是为了解决某个问题而推出的, 从而使 `React` 变得越来越好, 但这两个结合的时候, 我发现了一个 `Bug`
+
+    > 这里是示例的地址 `https://codesandbox.io/s/04393o3k6w`
+
+    ```js
+        
+        const OtherLogProps = logProps(OtherComponent)
+
+        class Inner extends React.PureComponent{
+          render() {
+            <!-- Forbidden 只初始化一次, 会阻止之后的props的更新 -->
+            return <Forbidden>
+                    <OtherLogProps>
+                      <ManyLevel>
+                        <SomeComponent />
+                      </ManyLevel>
+                    </OtherLogProps>
+                  </Forbidden>
+          }
+        }
+        
+
+    ```
+    此时 只要 `Root` 组件更新, 同时 `OtherLogProps` 下的某个组件(不论这个组件的层级有多深)使用了 `M.Consumer`来接受状态的话, `OtherLogProps` 就会接受到新的 `props`, 从而进行一轮 `rerender`.
+    不论这个 `OtherLogProps` 所在的层级是多么深, `LogProps` 这个节点总是会接受到 `React.forwardRef` 中的回调重新触发所传递的 props. 
+    
+    ### TODO: 研究它是如何做到的 
+
+    这两者的结合确实的导致了 `rerender` 的问题,  那么现在如何解决呢?
+    很简单: 
+          1. 将 `LogProps` 改为继承自 `React.PureComponent`
+          2. 或者 添加 `shouldComponentUpdate` 到 'LogProps` 中
+
+    但我相信这并不是 `React` 设计这两者的初衷, 因为不管如何改变`LogProps`, `React.forwardRef` 中的这个回调总是会被调用(这也是会影响一些性能), 而造成的结果就是**隐式触发**特定组件的更新.  在我看来,这是违反`声明式`这一 `React` 设计准则的, 使得`React`混淆了之前清晰的更新策略. 当初 `context` 在官网中特意声明的是这种从父组件"隐式传递" 状态的方式是不对的, 而现在这个是 **父组件更新, 导致某个使用了特定api子组件更新 **, 所以我认为这是一个 **bug**;
+    > issues 已提 (https://github.com/facebook/react/issues/12688)
+
+7. 如果使用了 `getDerivedStateFromProps` 那么 以 `UNSAFE_` 作为开头的 `lifecycle` 方法都不会被调用
+8. `OnlyRenderOnce` 使用 `shouldComponentUpdate` 来避免 状态更新, 但如果在一个很长的列表中, 每一个都去判断, 这也是会造成一些性能上的损失. 可以寻找其他方式替代, 比如改变 他们的 `parent` 的更新策略
+9. `xLeft` 和 `proption` 的改变, 组件更新耗费了太多的计算资源, 但是这两个的改变只是针对 某个特定`Element`的属性, 不需要重新计算非该 属性的值
+    所以:
+        优化渲染计算,抽取共通属性, 将更新触发到更细分的组件, 
+        优化前:
+        ![优化前](./images/XAxis-before.png)
+        优化后:
+        ![优化后](./images/XAxis-after.png)
+        
+        **Recaculate style** , 这一部分计算太多, 导致现在的帧数平均还是在 20-30 之间, 但是整体的 js 计算 已经减少了很多, 下一步优化 `Recaculate style` 这部分.
+
+        
+
+    > 考虑 2 种方式去解决: 
+        1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
+        2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
+10. 减少 `Recaculate style`
+    1. 分析:
+        1. 目前所有的 `SVG`图案的渲染都和 `proption`有关, `transform` 只影响最外层的 `g` 节点, 并不会对性能有什么影响.
+        2. `proption` 影响到的组件有自己的 style 改变方式, 所以, 把这一部分抽取出来
+        3. 每一次 `proption` 的改变, 不再触发 各个`Element`组件的更新, 而是直接改变`style Element`属性 
+    4. 策略:
+        1.  每个 `Element` 渲染时, 标记它, 并联合它的更新策略放入 一个 `Map` 中, 这个策略会返回它需要的 `style`
+        2. 下一次`state` 改变时, 传入 `proption`, 得到新的 `css `, 并挂载到 `style Element` 中
+    7. 实际:
+        1. 修改后 fps 有明显的提高, 目前的 fps 可以保持在 34 左右的样子. 不过还有进步空间, 由于 `line` 和 `text` 这两个`svg` 元素 , 好像没有办法通过 `css`修改 他们的 'inline-style' 
+           ![render优化后](./images/render-middle.png)
+          
+        2. TODO: 修改 上面两个元素  
 # 代码重构
 1.  Slider
   - 单一原则:
     1.  抽出 Dragger 组件, 处理 `drag` 事件, 处理回调
     2.  抽出 Dragging 组件, 处理 Dragger 组件中的回调出来的数值并处理出 `startPercent` 和 `percent`
+2.  XAxis
+  - 抽取组件     
+3.  Graduation

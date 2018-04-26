@@ -2,14 +2,11 @@ import React from "react";
 import HelpRects from "./HelpRects";
 import Nodes from "./Nodes";
 
-export default class XAxisSvg extends React.Component {
-  shouldComponentUpdate() {
-    return false;
-  }
+export default class XAxisSvg extends React.PureComponent {
   render() {
     const { leftWidth } = this.props;
     return (
-      <svg x={leftWidth}>
+      <svg x={leftWidth} id="gantt-xaxis">
         <HelpRects />
         <defs>{React.createElement(Nodes, { readOnly: true })}</defs>
         {React.createElement(Nodes)}
@@ -17,3 +14,7 @@ export default class XAxisSvg extends React.Component {
     );
   }
 }
+
+/**
+ 
+ */

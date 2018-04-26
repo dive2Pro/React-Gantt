@@ -1,25 +1,43 @@
 import React from "react";
-import { callAll, getUsedPositions } from "../util";
-import { Types, DEFAULT_EMPTYELEMENT } from "../../../constants";
+import { callAll, calcTimeDelta } from "../util";
+import { Types, DEFAULT_EMPTYELEMENT, valueStaticProps } from "../../../constants";
+
+
+const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, calcWidth, parentId, readOnly, dateTime, sm }) {
+  function calcStyle(proption) {
+    const timeWidth = calcTimeDelta(time, dateTime)
+    const startX = calcWidth(timeWidth, proption);
+    
+    return {
+      cx: startX + r,
+    }
+  }
+  const id =  parentId + '' + time
+  const inlinecss = sm && readOnly ? (sm.add(id, calcStyle), {}) : calcStyle(proption);
+  
+  return <ellipse
+    data-gantt-id={ readOnly || id}
+    fill={color}
+    rx={r}
+    ry={r}
+    cy={r + y}
+    {...inlinecss}
+  />
+}
+)
+
 const HightLightPoint = ({
   data,
-  renderHoverComponent,
-  x,
+  Container,
   y,
   height,
   startTime,
-  calcWidth,
   color,
-  ...rest
+  timeStartPoint,
+  parentId,
+  readOnly,
 }) => {
-  let Container = renderHoverComponent.apply(null, [
-    Types.HIGHLIGHT,
-    data,
-    ...rest
-  ]);
-  if (!React.isValidElement(Container)) {
-    Container = <DEFAULT_EMPTYELEMENT />;
-  }
+
   const { time, onClick, getHighLightProps = () => ({}) } = data;
   function innerGetProps() {
     const { className = " ", ...rest } = getHighLightProps(data);
@@ -28,23 +46,17 @@ const HightLightPoint = ({
       ...rest
     };
   }
-  const { timeWidth } = getUsedPositions({
-    startTime: startTime,
-    endTime: time
-  });
+  const timeWidth = calcTimeDelta(time,
+    startTime
+  )
 
-  const startX = calcWidth(timeWidth) + x,
-    startY = height / 2,
-    r = height / 2;
+  const r = height / 2;
 
   const children = (
     <g {...innerGetProps()} onClick={callAll(onClick)}>
-      <ellipse
-        fill={color}
-        rx={r}
-        ry={r}
-        cx={startX + r}
-        cy={startY + y}
+      <Ellipse parentId={parentId} r={r} color={color} time={time}
+      readOnly={readOnly}
+        y={y}
       />
     </g>
   );

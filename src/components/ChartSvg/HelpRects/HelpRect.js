@@ -16,7 +16,6 @@ export default class HelpRect extends React.Component {
           let x = width * c;
           return (
             <rect
-              transform={transform}
               fill={"#fff"}
               x={x}
               y={y}
