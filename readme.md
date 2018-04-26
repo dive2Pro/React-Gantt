@@ -2,6 +2,11 @@
 # 展示
 ![show-gif](./gifs/show.gif)
 
+
+# 使用
+
+    yarn & yarn start
+
 # 如何画一个 gantt 图
 
 1. 什么是 gantt 图 ?
@@ -456,4 +461,3 @@
 2.  XAxis
   - 抽取组件     
 3.  Graduation
-  -  
