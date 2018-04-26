@@ -10,7 +10,7 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
   sm, id, readOnly,
   proption, calcWidth }) {
   id = id + '-avarage-rect'
-  function calcCss(proption) {
+  function calcCss({proption}) {
     const x = calcWidth(timeStartPoint, proption)
     const width = calcWidth(avarageValue, proption) + 'px';
     return {
@@ -19,7 +19,7 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
     }
   }
 
-  const inlinecss = sm && !readOnly ? (sm.add(id, calcCss), {}) : calcCss(proption);
+  const inlinecss = sm && !readOnly ? (sm.add(id, calcCss), {}) : calcCss({proption});
   return <rect
     data-gantt-id={readOnly || id}
     fill={color}
@@ -30,14 +30,14 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
 })
 
 const TaskName = stateConsumerProps(function TaskName({
-  xLeft, y, h, avarageValue, startTime, name, sm, id,
+  startX, y, h, avarageValue, startTime, name, sm, id,
   proption, calcWidth, dateTime, usedTimeWidth
 }) {
   id = id + '-task-name-text'
-  function calcCss(proption, xLeft, key) {
+  function calcCss({proption, startX}, key) {
     const x = calcWidth(startTime, proption)
     let textTranslatex = 0
-    const left = xLeft / proption
+    const left = startX / proption
     if (left > x) {
       const avarageWidth = calcWidth(avarageValue, proption);
       const usedWidth = calcWidth(usedTimeWidth, proption);
@@ -58,8 +58,8 @@ const TaskName = stateConsumerProps(function TaskName({
 
   const inlinecss =
     // sm ? (sm.add(id, calcCss), {}) : 
-    calcCss(proption, xLeft);
-  return  <text
+    calcCss({proption, startX});
+  return <text
     y={y + 12} height={h / 3} {...inlinecss} >
       {name}
     </text>
@@ -68,7 +68,6 @@ const TaskName = stateConsumerProps(function TaskName({
 class TaskItems extends React.PureComponent {
   render() {
     const {
-      xLeft,
       dataItem,
       y,
       color,

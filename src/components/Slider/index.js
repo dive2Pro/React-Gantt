@@ -4,15 +4,14 @@ import DragSvg from "./DragSvg";
 import Dragging from "./Dragging";
 
 export default class Slide extends React.PureComponent {
-  handleDraggingStateChange = ({ percent, startPercent }) => {
+  handleDraggingStateChange = ({ percent, startX }) => {
     const { xAxisWidth } = this.props;
-    const minPercent = this.MIN_WIDTH / xAxisWidth;
     const changed = {};
     if (percent != null) {
       changed.proption = percent;
     }
-    if (startPercent != null) {
-      changed.xLeft = startPercent * xAxisWidth;
+    if (startX != null) {
+      changed.startX = startX
     }
     this.props.onStateChange(changed);
   };
@@ -24,8 +23,9 @@ export default class Slide extends React.PureComponent {
       minLineHeight,
       data,
       children,
-      xLeft,
-      proption
+      startX,
+      proption,
+      min
     } = this.props;
     let h = minLineHeight * data.length;
     h = h < 30 ? 30 : h;
@@ -35,14 +35,15 @@ export default class Slide extends React.PureComponent {
       <div className="bottom-slide">
         {children}
         <Dragging
-          startPercent={xLeft / xAxisWidth}
+          min={min}
+          startX={startX}
           percent={proption}
           onStateChange={this.handleDraggingStateChange}
           width={xAxisWidth}
         >
           {({ percent, startPercent, handleDragging }) => {
             const slideStyle = {
-              width: xAxisWidth * percent
+              width: xAxisWidth * proption
             };
             return (
               <div
@@ -55,7 +56,7 @@ export default class Slide extends React.PureComponent {
               >
                 <div
                   style={{
-                    minWidth: xLeft
+                    minWidth: startX
                   }}
                 />
                 <div className="_slide" style={slideStyle}>

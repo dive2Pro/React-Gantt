@@ -4,43 +4,43 @@ import { StateReducerComponent } from "../StateReducerComponent";
 export default class Dragging extends StateReducerComponent {
   static defaultProps = StateReducerComponent.defaultProps;
   state = {
-    startPercent: this.props.startPercent || 0,
-    percent: this.props.percent || 0.4
+    startX: this.props.startX,
+    percent: this.props.percent
   };
 
   // 左边Drag
   setStartPercentAndPercent = diff => {
-    const { width } = this.props;
-    const { startPercent, percent } = this.getState();
-    const totalPercent = startPercent + percent;
-    const totalWidth = totalPercent * width;
-
-    let leftWidth = startPercent * width;
-    if (leftWidth <= 0 && diff < 0) {
+    const { width, min } = this.props;
+    const { startX, percent } = this.getState();
+    const percentWidth = +percent * width
+    const totalWidth = percentWidth + startX;
+    if (startX <= 0 && diff < 0) {
       return;
-      
     }
-    leftWidth = leftWidth + diff;
-    if (leftWidth < 0) {
-      leftWidth = 0;
-    } else if (leftWidth >= totalWidth) {
-      leftWidth = totalWidth;
+    let delta = startX + diff;
+    if (startX < 0) {
+      delta = 0;
+    } else if (delta >= totalWidth) {
+      delta = totalWidth;
+    } 
+    if (min * width > totalWidth - delta) {
+      // delta = startX
+      return 
     }
-
-    const currentPercentWidth = totalWidth - leftWidth;
+    const currentPercentWidth = totalWidth - delta;
 
     this.internalSetState({
       percent: (currentPercentWidth / width).toFixed(6) * 1,
-      startPercent: (leftWidth / width).toFixed(6) * 1
+      startX: delta
     });
   };
 
   // 右边Drag
   setPercent = diff => {
     const { width } = this.props;
-    const { startPercent, percent } = this.getState();
+    const { startX, percent } = this.getState();
     const percentWidth = percent * width;
-    const leftWidth = +startPercent * width;
+    const leftWidth = startX;
     let deltaWidth = percentWidth + diff;
     if (deltaWidth < 0) {
       deltaWidth = 0;
@@ -51,15 +51,15 @@ export default class Dragging extends StateReducerComponent {
     const currentPercent = deltaWidth / width;
 
     this.internalSetState({
-      percent: parseFloat(currentPercent.toFixed(6))
+      percent: currentPercent.toFixed(6)* 1
     });
   };
 
   // move
   setStartPercent = diff => {
     const { width } = this.props;
-    const { startPercent, percent } = this.getState();
-    const leftWidth = startPercent * width;
+    const { startX, percent } = this.getState();
+    const leftWidth = startX;
     let deltaWidth = leftWidth + diff;
     if (deltaWidth < 0) {
       deltaWidth = 0;
@@ -73,7 +73,7 @@ export default class Dragging extends StateReducerComponent {
     const currentStartPercent = deltaWidth / width;
 
     this.internalSetState({
-      startPercent: parseFloat(currentStartPercent.toFixed(6))
+      startX: deltaWidth
     });
   };
   handleDragging = (direction, ...args) => {

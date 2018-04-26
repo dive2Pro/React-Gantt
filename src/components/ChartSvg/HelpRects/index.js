@@ -1,32 +1,38 @@
 import React from "react";
-import HelpRect from "./HelpRect";
+import { columns, GanttContext, GanttValueStaticContext, GanttStateContext, lineProps, HelpRectColumnPrefix, HelpRectRowId } from "../../constants";
 
-import { columns, GanttContext, GanttStateContext, lineProps } from "../../constants";
-
-const RowLine = ({ xAxisWidth, y }) => {
-  return <GanttStateContext.Consumer>
-    {({ proption }) => <line
+const RowLine = ({ xAxisWidth, y, h }) => {
+  return <GanttValueStaticContext.Consumer>
+    {() => <rect
       {...lineProps}
-      x1="0"
-      x2={xAxisWidth / proption}
-      y1={y}
-      y2={y}
+      x="0"
+      y={y}
+      height={h}
+      data-gantt-id={HelpRectRowId}
     />}
-  </GanttStateContext.Consumer>
+  </GanttValueStaticContext.Consumer>
 }
-const ColumnLine = ({ h, i, initialWidth }) =>
-  <GanttStateContext.Consumer>
-    {({ proption, transform }) => {
-      const x = initialWidth * i / proption;
-      return <line
+const ColumnLine = ({ h, i }) =>
+  <GanttValueStaticContext.Consumer>
+    {({ props: {
+      sm
+    } }) => {
+      const id = HelpRectColumnPrefix + '-' + i
+      function calcCss({ helpRectWidth }) {
+        return {
+          x: helpRectWidth * i
+        }
+      }
+      sm.add(id, calcCss)
+      return <rect
         {...lineProps}
-        x1={x}
-        x2={x}
-        y1={0}
-        y2={h}
+        y={0}
+        width={0.1}
+        height={h}
+        data-gantt-id={id}
       />
     }}
-  </GanttStateContext.Consumer>
+  </GanttValueStaticContext.Consumer>
 
 class HelpRects extends React.Component {
   shouldComponentUpdate() {
@@ -38,12 +44,12 @@ class HelpRects extends React.Component {
         {({ lineHeight: h, data, xAxisWidth, chartHeight }) => {
           let rects = [];
           const rows = data.length;
-          const initialWidth = xAxisWidth / columns;
           for (let r = 0; r < rows; r++) {
             rects.push(
               <RowLine
                 key={'row - ' + r}
                 xAxisWidth={xAxisWidth}
+                h={h}
                 y={r * h}
               />
             );
@@ -52,22 +58,30 @@ class HelpRects extends React.Component {
             rects.push(
               <ColumnLine
                 key={'column - ' + c}
-                initialWidth={initialWidth}
                 h={h * rows}
                 i={c}
               />
             );
           }
+      console.log('--help')
+          
           return (
-            <GanttStateContext.Consumer>
-              {({ proption, transform }) => {
+            <GanttValueStaticContext.Consumer>
+              {({ props: { sm } }) => {
+                const id = 'help-rect-container'
+                function calcCss({ transform }) {
+                  return {
+                    transform
+                  }
+                }
+                sm.add(id, calcCss)
                 return <g
-                  transform={transform}
+                  data-gantt-id={id}
                   className="help-rects"> {
                     rects
                   }</g>;
               }}
-            </GanttStateContext.Consumer>
+            </GanttValueStaticContext.Consumer>
           );
         }}
       </GanttContext.Consumer>

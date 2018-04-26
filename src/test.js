@@ -1,16 +1,16 @@
 import React from "react";
 
 const calcHoc = Comp => {
-  const Wrapper = ({ proption, xLeft, index = 0, readOnly, ...rest }) => {
+  const Wrapper = ({ proption, startX, index = 0, readOnly, ...rest }) => {
     // 0. height & y 是不会变化的
     // 1. 当比例变小的时候, deltaX 是不会变化
-    // 2. xLeft 变化的时候, width 是不会变化的
+    // 2. startX 变化的时候, width 是不会变化的
     // 3. 渲染的时候 有一个 initial值 { initialX, initialWidth }
     // 4. 计算的时候就用这几个值
     const initialX = 50 * index + 50,
       initialWidth = 50;
-    // const x = initialX - xLeft; // 不是这样得出 x 值, 我们需要将漫游器 (想象是一个望远镜) 显示某个位置的, 而不是移动目标位置的效果
-    const deltaX = xLeft;
+    // const x = initialX - startX; // 不是这样得出 x 值, 我们需要将漫游器 (想象是一个望远镜) 显示某个位置的, 而不是移动目标位置的效果
+    const deltaX = startX;
     const transform = `translate(${deltaX} ,0)`;
     const width = initialWidth / proption;
     // (1 - proption) * initialWidth

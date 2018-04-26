@@ -65,7 +65,7 @@ const YAxis = ({ names, h }) => {
 class Test extends React.PureComponent {
   state = {
     proption: 1,
-    xLeft: 0
+    startX: 0
   };
   handleInputProptionChange = ({ target: { value } }) => {
     // value is float
@@ -75,7 +75,7 @@ class Test extends React.PureComponent {
   };
   handleInputXChange = ({ target: { value } }) => {
     this.setState({
-      xLeft: value * -1
+      startX: value * -1
     });
   };
   render() {

@@ -19,7 +19,7 @@ const AwaitView = stateConsumerProps(function AwaitView({
   const rightLineId = id + '-await-right-line'
   const lineId = id + '-await-middle-line'
   const textId = id + '-await-text-id'
-  function calcCss(proption, xLeft, key) {
+  function calcCss(proption, startX, key) {
     let width
     if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
       width = 0;

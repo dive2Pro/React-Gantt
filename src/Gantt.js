@@ -9,13 +9,14 @@ import {
   GanttValueStaticContext,
   Types,
   DEFAULT_EMPTYELEMENT,
-  dayMillisedons
+  dayMillisedons,
+  columns,
+  NodesGId,
+  HelpRectRowId
 } from "./components/constants";
 import P from "prop-types";
 
 import "./style/gantt.css";
-import { WSATYPE_NOT_FOUND } from "constants";
-
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
   // 当天 00:00 时的 milliseconds 值
@@ -45,24 +46,24 @@ class StyleMap {
     this.el = el;
   }
   add(id, updater, once) {
-    if(once) {
-    //  return this.onceSelector.push() 
+    if (once) {
+      //  return this.onceSelector.push() 
     }
     this.selector.set(id, updater)
 
   }
 
-  update(...args) {
+  update(args) {
     // 修改 
     let style = []
     this.selector.forEach((fn, key) => {
       // console.log(fn(proption))
-      const returned = fn.apply(null, [...args,key]);
+      const returned = fn(args, key);
       const styleStr = Object.entries(returned).reduce((p, [key, value]) => {
         return p + `${key}:${value}; `
       }, ``)
 
-      const str = `#gantt-xaxis g:not(#tasks-readOnly) [data-gantt-id="${key}"] {
+      const str = `#gantt-xaxis [data-gantt-id="${key}"] {
         ${styleStr}
       }`
       style.push(str)
@@ -75,15 +76,27 @@ class StyleMap {
   }
 
   setStyle(style) {
-    this.el.innerHTML = `
+    window.requestAnimationFrame(() => {
+      this.el.innerHTML = `
       ${style}
     `
+    })
+
   }
 }
 
 export const sm = new StyleMap()
 
-
+sm.add(HelpRectRowId, function ({ totalWidth }) {
+  return {
+    width: totalWidth + 'px'
+  }
+})
+sm.add(NodesGId, function ({ transform }) {
+  return {
+    transform
+  }
+})
 export default class ReactGantt extends React.PureComponent {
   static defaultProps = {
     data: [],
@@ -108,26 +121,39 @@ export default class ReactGantt extends React.PureComponent {
     slideHeight: 30
   };
   static Types = Types;
+  MIN_PROPTION = 0.03;
   initialState = {
     proption: this.props.proption || 0.5,
-    xLeft: this.props.startX || 200,
+    startX: this.props.startX == undefined ? 200 : this.props.startX,
     dateTime: getDayMilliseconds(this.props.date),
   };
-  state = this.initialState;
+
   constructor(props) {
     super(props)
     this._staticProps = { props: { ...props, ...this.initialState } };
-    this._staticState = {...this.state,
+    this._staticState = {
+      ...this.state,
       calcWidth: this.calcWidth,
       sm
-     }
+    }
+    this.state = { ...this.initialState, ...this.calculateWidthState(props.xAxisWidth / this.initialState.proption) };
+
+  }
+  calculateWidthState = (totalWidth) => {
+    const helpRectWidth = totalWidth / columns;
+    return {
+      totalWidth,
+      helpRectWidth
+    }
   }
 
   componentDidMount() {
-    sm.update(this.state.proption, this.state.xLeft)
+    sm.update(this.state)
   }
 
   handleChange = args => {
+    const self = this
+    const { xAxisWidth } = this.props
     this.setState({
       ...Object.keys(args)
         .filter(key => {
@@ -135,14 +161,22 @@ export default class ReactGantt extends React.PureComponent {
         })
         .reduce((newObj, key) => {
           newObj[key] = args[key]
-          if (key === 'proption' && !newObj[key]) {
-            newObj[key] = 0.00002
+
+          if (key === 'proption') {
+            let value = newObj[key]
+            if (!value || value <= this.MIN_PROPTION) {
+              newObj[key] = value = this.MIN_PROPTION
+            }
+            newObj = { ...newObj, ...self.calculateWidthState(xAxisWidth / value) }
+
           }
           return newObj
 
         }, {})
     }, () => {
-      sm.update(this.state.proption)
+      const { startX, proption } = this.state
+      const transform = `translate( ${startX * -1 / proption}px, 0)`;
+      sm.update({ ...this.state, transform })
     });
   };
   calcWidth = (time, proption) => {
@@ -162,21 +196,22 @@ export default class ReactGantt extends React.PureComponent {
     } = this.props;
     this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, sm };
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
-    const { xLeft, proption } = this.state;
-    const transform = `translate( ${xLeft * -1 / proption}, 0)`;
+    const { startX, proption } = this.state;
+    const transform = `translate( ${startX * -1 / proption}, 0)`;
     const { xAxisWidth, leftWidth } = rest;
 
     return (
-      <GanttContext.Provider value={{
-        transform,
-        ...this.props
-      }}>
+      <GanttContext.Provider value={
+        this.props
+      }>
         <GanttValueStaticContext.Provider value={this._staticProps}>
           <GanttStateContext.Provider
             value={{
-              ...this.state, 
+              ...this.state,
               calcWidth: this.calcWidth,
-              sm }}
+              transform,
+              sm
+            }}
           >
             <React.Fragment>
               <div
@@ -190,10 +225,10 @@ export default class ReactGantt extends React.PureComponent {
               >
                 <ChartSvg {...this.props} {...this.state} transform={transform} />
               </div>
-              <Graduation {...rest} {...this.state} transform={transform} />
-              <Slide {...rest} {...this.state} onStateChange={this.handleChange}>
+              <Graduation {...rest} {...this.state} transform={transform} helpRectWidth={this.state.helpRectWidth} />
+              <Slide {...rest} {...this.state} onStateChange={this.handleChange} min={this.MIN_PROPTION}>
                 <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
-                  <use xlinkHref="#tasks-readOnly" x={leftWidth} y={0} />
+                  <use xlinkHref={`#${NodesGId}readOnly`} x={leftWidth} y={0} />
                 </svg>
               </Slide>
             </React.Fragment>

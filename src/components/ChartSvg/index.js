@@ -10,7 +10,7 @@ class Chart extends React.Component {
     return (
       <svg width={leftWidth + xAxisWidth} height={lineHeight * data.length}>
         <YAxisSvg {...this.props} />
-        <XAxisSvg leftWidth={leftWidth} />
+        <XAxisSvg {...this.props} />
       </svg>
     );
   }

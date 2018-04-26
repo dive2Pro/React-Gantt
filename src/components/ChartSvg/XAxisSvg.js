@@ -4,10 +4,10 @@ import Nodes from "./Nodes";
 
 export default class XAxisSvg extends React.PureComponent {
   render() {
-    const { leftWidth } = this.props;
+    const { leftWidth, lineHeight, readOnly } = this.props;
     return (
-      <svg x={leftWidth} id="gantt-xaxis">
-        <HelpRects />
+      <svg x={leftWidth} id={`gantt-xaxis${readOnly ? '-readOnly' : ''}`}>
+        <HelpRects/>
         <defs>{React.createElement(Nodes, { readOnly: true })}</defs>
         {React.createElement(Nodes)}
       </svg>

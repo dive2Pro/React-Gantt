@@ -97,8 +97,8 @@ class App extends React.PureComponent {
             .concat(DATA)
         )}
         chartHeight={500}
-        proption={0.4}
-        startX={200}
+        proption={1}
+        startX={0}
         date={"2018-4-21"}
         renderHoverComponent={(type, dataItem, ...rest) => {
           switch (type) {

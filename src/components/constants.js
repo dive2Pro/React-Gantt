@@ -106,9 +106,16 @@ export const HalfHours = [
 
 
 export const lineProps = {
+  fill: 'transparent',
   stroke: "blue",
   strokeWidth: 0.2,
   strokeOpacity: 0.5,
   strokeDasharray: [5, 3],
   strokeDashoffset: 2
 };
+
+const prefix = '_react_gantt'
+export const HelpRectRowId = `${prefix}help-rect-row-id`
+export const HelpRectColumnPrefix = `${prefix}help-rect-column`
+
+export const NodesGId = `${prefix}-nodes-g-id-`

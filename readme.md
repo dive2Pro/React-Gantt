@@ -209,8 +209,8 @@
         当天的日期 required
 4.  组件设计
       1.  Root 组件, 由 React.createContext 保存传递 props
-      2.  首先绘制 YAxis 任务名 和 XAxis 上面的 辅助线 , 这两个是固定的高度, XAxis 接受额外的两个 prop -> proption = 1 和 xLeft = 0
-      3.  绘制辅助线, 会根据 proption 和 xLeft 变化. 需要绘制 48 列 data[].length 行 个 辅助线
+      2.  首先绘制 YAxis 任务名 和 XAxis 上面的 辅助线 , 这两个是固定的高度, XAxis 接受额外的两个 prop -> proption = 1 和 startX = 0
+      3.  绘制辅助线, 会根据 proption 和 startX 变化. 需要绘制 48 列 data[].length 行 个 辅助线
       4.  ```javascript
             data.map((d, i) => {
               // 1. 拿到 usedTime
@@ -408,7 +408,7 @@
     此时 只要 `Root` 组件更新, 同时 `OtherLogProps` 下的某个组件(不论这个组件的层级有多深)使用了 `M.Consumer`来接受状态的话, `OtherLogProps` 就会接受到新的 `props`, 从而进行一轮 `rerender`.
     不论这个 `OtherLogProps` 所在的层级是多么深, `LogProps` 这个节点总是会接受到 `React.forwardRef` 中的回调重新触发所传递的 props. 
     
-    ### TODO: 研究它是如何做到的 
+    ### 研究它是如何做到的 [how-it-occurs]('./how-16888-occurs.md)
 
     这两者的结合确实的导致了 `rerender` 的问题,  那么现在如何解决呢?
     很简单: 
@@ -420,7 +420,7 @@
 
 7. 如果使用了 `getDerivedStateFromProps` 那么 以 `UNSAFE_` 作为开头的 `lifecycle` 方法都不会被调用
 8. `OnlyRenderOnce` 使用 `shouldComponentUpdate` 来避免 状态更新, 但如果在一个很长的列表中, 每一个都去判断, 这也是会造成一些性能上的损失. 可以寻找其他方式替代, 比如改变 他们的 `parent` 的更新策略
-9. `xLeft` 和 `proption` 的改变, 组件更新耗费了太多的计算资源, 但是这两个的改变只是针对 某个特定`Element`的属性, 不需要重新计算非该 属性的值
+9. `startX` 和 `proption` 的改变, 组件更新耗费了太多的计算资源, 但是这两个的改变只是针对 某个特定`Element`的属性, 不需要重新计算非该 属性的值
     所以:
         优化渲染计算,抽取共通属性, 将更新触发到更细分的组件, 
         优化前:

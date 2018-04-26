@@ -1,7 +1,8 @@
 import React from "react";
 import { GanttContext, 
   DEFAULT_EMPTYELEMENT,
-  Types
+  Types,
+  NodesGId
  } from "../../constants";
 import Tasks from "./Tasks";
 import {partialLeft} from './util'
@@ -13,7 +14,6 @@ export default class Nodes extends React.Component {
       <GanttContext.Consumer>
         {({ data, lineHeight: h, xAxisWidth,
         renderHoverComponent,
-         transform,
          slideHeight, ...rest }) => {
           const ary = [];
           const dataLength = data.length;
@@ -45,10 +45,12 @@ export default class Nodes extends React.Component {
               />
             );
           }
-          transform = readOnly ? "" : transform; // No
+          // transform = readOnly ? "" : transform; // No
           
           return (
-            <g id={`tasks-${readOnly ? String("readOnly") : ""}`} transform={transform}>{ary}</g>
+            <g id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
+            data-gantt-id={readOnly || NodesGId}
+            >{ary}</g>
           );
         }}
       </GanttContext.Consumer>
