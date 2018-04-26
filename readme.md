@@ -416,6 +416,7 @@
           2. 或者 添加 `shouldComponentUpdate` 到 'LogProps` 中
 
     但我相信这并不是 `React` 设计这两者的初衷, 因为不管如何改变`LogProps`, `React.forwardRef` 中的这个回调总是会被调用(这也是会影响一些性能), 而造成的结果就是**隐式触发**特定组件的更新.  在我看来,这是违反`声明式`这一 `React` 设计准则的, 使得`React`混淆了之前清晰的更新策略. 当初 `context` 在官网中特意声明的是这种从父组件"隐式传递" 状态的方式是不对的, 而现在这个是 **父组件更新, 导致某个使用了特定api子组件更新 **, 所以我认为这是一个 **bug**;
+    > issues 已提 (https://github.com/facebook/react/issues/12688)
 
 7. 如果使用了 `getDerivedStateFromProps` 那么 以 `UNSAFE_` 作为开头的 `lifecycle` 方法都不会被调用
 8. `OnlyRenderOnce` 使用 `shouldComponentUpdate` 来避免 状态更新, 但如果在一个很长的列表中, 每一个都去判断, 这也是会造成一些性能上的损失. 可以寻找其他方式替代, 比如改变 他们的 `parent` 的更新策略
@@ -440,11 +441,13 @@
         2. `proption` 影响到的组件有自己的 style 改变方式, 所以, 把这一部分抽取出来
         3. 每一次 `proption` 的改变, 不再触发 各个`Element`组件的更新, 而是直接改变`style Element`属性 
     4. 策略:
-        5. 每个 `Element` 渲染时, 标记它, 并联合它的更新策略放入 一个 `Map` 中, 这个策略会返回它需要的 `style`
-        6. 下一次`state` 改变时, 传入 `proption`, 得到新的 `css `, 并挂载到 `style Element` 中
+        1.  每个 `Element` 渲染时, 标记它, 并联合它的更新策略放入 一个 `Map` 中, 这个策略会返回它需要的 `style`
+        2. 下一次`state` 改变时, 传入 `proption`, 得到新的 `css `, 并挂载到 `style Element` 中
     7. 实际:
-        8. 修改后 fps 有明显的提高, 目前的 fps 可以保持在 34 左右的样子. 不过还有进步空间, 由于 `line` 和 `text` 这两个`svg` 元素 , 好像没有办法通过 `css`修改 他们的 'inline-style' 
-        9. TODO: 修改 上面两个元素  
+        1. 修改后 fps 有明显的提高, 目前的 fps 可以保持在 34 左右的样子. 不过还有进步空间, 由于 `line` 和 `text` 这两个`svg` 元素 , 好像没有办法通过 `css`修改 他们的 'inline-style' 
+           ![render优化后](./images/render-middle.png)
+          
+        2. TODO: 修改 上面两个元素  
 # 代码重构
 1.  Slider
   - 单一原则:
@@ -452,3 +455,5 @@
     2.  抽出 Dragging 组件, 处理 Dragger 组件中的回调出来的数值并处理出 `startPercent` 和 `percent`
 2.  XAxis
   - 抽取组件     
+3.  Graduation
+  -  

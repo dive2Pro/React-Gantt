@@ -39,7 +39,7 @@ const Graduation = ({
     .filter(Boolean);
 
   return (
-    <svg height={h} width={xAxisWidth + leftWidth + 50}>
+    <svg height={h} width={xAxisWidth + leftWidth}>
       {children}
       <rect fill={"white"} width={leftWidth - 20} height={h} />
     </svg>
