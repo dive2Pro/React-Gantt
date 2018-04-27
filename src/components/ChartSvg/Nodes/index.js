@@ -35,6 +35,7 @@ export default class Nodes extends React.Component {
                 key={i}
                 h={height}
                 y={y}
+                index={i}
                 xAxisWidth={xAxisWidth}
                 dataItem={dataItem}
                 awaitStartTime={awaitStartTime}

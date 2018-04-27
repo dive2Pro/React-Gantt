@@ -44,11 +44,11 @@ class StyleMap {
     }
 
     setStyle(style) {
-        window.requestAnimationFrame(() => {
+        // window.requestAnimationFrame(() => {
             this.el.innerHTML = `
         ${style}
       `
-        })
+        // })
 
     }
 }

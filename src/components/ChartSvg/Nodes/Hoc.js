@@ -66,17 +66,17 @@ const calcHoc = Comp => {
         <Consumer>
           {(value) => {
             let {
-              dateTime,  // 不传传 props
-              calcWidth, // no
+              dateTime, 
+              calcWidth,
             } = readOnly ? value.props : value;
 
-            const timeStartPoint = calcTimeDelta(usedTime.startTime, dateTime); // 传 props
+            const timeStartPoint = calcTimeDelta(usedTime.startTime, dateTime); 
 
-            const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); // 传 props
+            const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); 
 
 
             const color =
-              avarageValue > timeWidth ? ontimeColors : timeoutColors; // Yes
+              avarageValue > timeWidth ? ontimeColors : timeoutColors; 
 
             return (
               <g

@@ -2,10 +2,10 @@ import React from "react";
 import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
-import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps } from "../../constants";
+import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps , valueStaticProps } from "../../constants";
 
 
-const AvarageRect = stateConsumerProps(function AvarageRect({
+const AvarageRect = valueStaticProps(function AvarageRect({
   color, h, timeStartPoint, y, avarageValue,
   styleUpdateMap, id, readOnly,
   proption, calcWidth }) {
@@ -18,7 +18,7 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
       width
     }
   }
-
+  console.log('reader')
   const inlinecss = styleUpdateMap && !readOnly ? (styleUpdateMap.add(id, calcCss), {}) : calcCss({proption});
   return <rect
     data-gantt-id={readOnly || id}
@@ -29,13 +29,13 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
   />
 })
 
-const TaskName = stateConsumerProps(function TaskName({
+const TaskName = valueStaticProps(function TaskName({
   startX, y, h, avarageValue, startTime, name, styleUpdateMap, id,
   proption, calcWidth, dateTime, usedTimeWidth
 }) {
   id = id + '-task-name-text'
   function calcCss({proption, startX}, key) {
-    const x = calcWidth(startTime, proption)
+    const x = calcWidth(startTime)
     let textTranslatex = 0
     const left = startX / proption
     if (left > x) {
@@ -48,18 +48,18 @@ const TaskName = stateConsumerProps(function TaskName({
       }
     }
 
-    const textPlusTransform = `translate(${textTranslatex} , 0)`
+    const textPlusTransform = `translate(${textTranslatex + x}px, 0)`
 
     return {
-      transform: textPlusTransform,
-      x
+      transform: textPlusTransform
     }
   }
 
   const inlinecss =
-    // styleUpdateMap ? (styleUpdateMap.add(id, calcCss), {}) : 
+    styleUpdateMap ? (styleUpdateMap.add(id, calcCss), {}) : 
     calcCss({proption, startX});
   return <text
+    data-gantt-id={id}
     y={y + 12} height={h / 3} {...inlinecss} >
       {name}
     </text>
@@ -83,7 +83,8 @@ class TaskItems extends React.PureComponent {
       TaskHoverContainer,
       AwaitHoverContainer,
       HightLightContainers,
-      readOnly
+      readOnly,
+      index
     } = this.props
     const usedY = y + h * 2 / 3;
     const usedH = h / 4;
