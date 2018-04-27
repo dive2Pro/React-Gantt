@@ -3,7 +3,7 @@ import HightLightPoint from "./HightLightPoint";
 import { valueStaticProps } from '../../../constants'
 
 const UserRect = valueStaticProps(function UserRect({ timeWidth, timeStartPoint,
-  calcWidth, proption, sm, parentId, x, width, readOnly, ...rectProps }) {
+  calcWidth, proption, styleUpdateMap, parentId, x, width, readOnly, ...rectProps }) {
   const id =  parentId + '-userrect-' + timeStartPoint
   function calcCss({proption}) {
     return {
@@ -11,7 +11,7 @@ const UserRect = valueStaticProps(function UserRect({ timeWidth, timeStartPoint,
       width: calcWidth(timeWidth, proption) + 'px'
     }
   }
-  const inlinecss = sm && !readOnly ? (sm.add(id, calcCss), {}) : calcCss({proption});
+  const inlinecss = styleUpdateMap && !readOnly ? (styleUpdateMap.add(id, calcCss), {}) : calcCss({proption});
   return <rect
     data-gantt-id={readOnly || id}
     {...inlinecss}

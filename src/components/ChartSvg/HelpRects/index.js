@@ -15,7 +15,7 @@ const RowLine = ({ xAxisWidth, y, h }) => {
 const ColumnLine = ({ h, i }) =>
   <GanttValueStaticContext.Consumer>
     {({ props: {
-      sm
+      styleUpdateMap
     } }) => {
       const id = HelpRectColumnPrefix + '-' + i
       function calcCss({ helpRectWidth }) {
@@ -23,7 +23,7 @@ const ColumnLine = ({ h, i }) =>
           x: helpRectWidth * i
         }
       }
-      sm.add(id, calcCss)
+      styleUpdateMap.add(id, calcCss)
       return <rect
         {...lineProps}
         y={0}
@@ -67,14 +67,14 @@ class HelpRects extends React.Component {
           
           return (
             <GanttValueStaticContext.Consumer>
-              {({ props: { sm } }) => {
+              {({ props: { styleUpdateMap } }) => {
                 const id = 'help-rect-container'
                 function calcCss({ transform }) {
                   return {
                     transform
                   }
                 }
-                sm.add(id, calcCss)
+                styleUpdateMap.add(id, calcCss)
                 return <g
                   data-gantt-id={id}
                   className="help-rects"> {

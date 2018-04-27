@@ -3,7 +3,7 @@ import { callAll, calcTimeDelta } from "../util";
 import { Types, DEFAULT_EMPTYELEMENT, valueStaticProps } from "../../../constants";
 
 
-const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, calcWidth, parentId, readOnly, dateTime, sm }) {
+const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, calcWidth, parentId, readOnly, dateTime, styleUpdateMap }) {
   function calcCss({proption}) {
     const timeWidth = calcTimeDelta(time, dateTime)
     const startX = calcWidth(timeWidth, proption);
@@ -13,7 +13,7 @@ const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption,
     }
   }
   const id =  parentId + '' + time
-  const inlinecss = sm && readOnly ? (sm.add(id, calcCss), {}) : calcCss({proption});
+  const inlinecss = styleUpdateMap && readOnly ? (styleUpdateMap.add(id, calcCss), {}) : calcCss({proption});
   
   return <ellipse
     data-gantt-id={ readOnly || id}

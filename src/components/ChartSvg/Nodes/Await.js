@@ -11,7 +11,7 @@ const AwaitView = stateConsumerProps(function AwaitView({
   fontSize,
   proption, 
   calcWidth,
-  sm,
+  styleUpdateMap,
   dataItem: { id }
 }) {
   const str = "等待中";
@@ -24,9 +24,9 @@ const AwaitView = stateConsumerProps(function AwaitView({
     if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
       width = 0;
     } else {
-      width = calcWidth(awaitEnd - awaitStart, proption);
+      width = calcWidth(awaitEnd - awaitStart);
     }
-    let endX = calcWidth(timeStartPoint, proption)
+    let endX = calcWidth(timeStartPoint)
     let x1 = endX - width
     let y2 = y,
       y1 = y,
@@ -59,16 +59,16 @@ const AwaitView = stateConsumerProps(function AwaitView({
     }
   }
   const leftInLinecss = 
-    // sm ? (sm.add(leftLineId, calcCss), {}) : 
+    // styleUpdateMap ? (styleUpdateMap.add(leftLineId, calcCss), {}) : 
     calcCss(proption, leftLineId);
   const rightInLinecss =
-  //  sm ? (sm.add(rightLineId, calcCss), {}) : 
+  //  styleUpdateMap ? (styleUpdateMap.add(rightLineId, calcCss), {}) : 
     calcCss(proption, rightLineId);
   const lineInlinecss = 
-  // sm ? (sm.add(lineId, calcCss), {}) :
+  // styleUpdateMap ? (styleUpdateMap.add(lineId, calcCss), {}) :
    calcCss(proption, lineId);
   const textInLinecss =
-  //  sm ? (sm.add(textId, calcCss), {}) :
+  //  styleUpdateMap ? (styleUpdateMap.add(textId, calcCss), {}) :
     calcCss(proption, textId);
 
   return <g>

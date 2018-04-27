@@ -11,11 +11,10 @@ import {
   DEFAULT_EMPTYELEMENT,
   dayMillisedons,
   columns,
-  NodesGId,
-  HelpRectRowId
+  NodesGId
 } from "./components/constants";
 import P from "prop-types";
-
+import {styleUpdateMap} from './StyleMap'
 import "./style/gantt.css";
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
@@ -31,72 +30,7 @@ const ColorType = P.shape({
   highlight: P.string
 });
 
-class StyleMap {
 
-  constructor() {
-    this.selector = new Map()
-    this.onceSelector = new Map()
-    const el = document.createElement('style');
-    el.type = 'text/css';
-    this.el = el;
-    document.head.appendChild(el)
-  }
-
-  setEl(el) {
-    this.el = el;
-  }
-  add(id, updater, once) {
-    if (once) {
-      //  return this.onceSelector.push() 
-    }
-    this.selector.set(id, updater)
-
-  }
-
-  update(args) {
-    // 修改 
-    let style = []
-    this.selector.forEach((fn, key) => {
-      // console.log(fn(proption))
-      const returned = fn(args, key);
-      const styleStr = Object.entries(returned).reduce((p, [key, value]) => {
-        return p + `${key}:${value}; `
-      }, ``)
-
-      const str = `#gantt-xaxis [data-gantt-id="${key}"] {
-        ${styleStr}
-      }`
-      style.push(str)
-    })
-    if (!this.el) {
-
-      return
-    }
-    this.setStyle(style.join(' '))
-  }
-
-  setStyle(style) {
-    window.requestAnimationFrame(() => {
-      this.el.innerHTML = `
-      ${style}
-    `
-    })
-
-  }
-}
-
-export const sm = new StyleMap()
-
-sm.add(HelpRectRowId, function ({ totalWidth }) {
-  return {
-    width: totalWidth + 'px'
-  }
-})
-sm.add(NodesGId, function ({ transform }) {
-  return {
-    transform
-  }
-})
 export default class ReactGantt extends React.PureComponent {
   static defaultProps = {
     data: [],
@@ -134,7 +68,7 @@ export default class ReactGantt extends React.PureComponent {
     this._staticState = {
       ...this.state,
       calcWidth: this.calcWidth,
-      sm
+      styleUpdateMap
     }
     this.state = { ...this.initialState, ...this.calculateWidthState(props.xAxisWidth / this.initialState.proption) };
 
@@ -148,7 +82,7 @@ export default class ReactGantt extends React.PureComponent {
   }
 
   componentDidMount() {
-    sm.update(this.state)
+    styleUpdateMap.update(this.state)
   }
 
   handleChange = args => {
@@ -176,14 +110,15 @@ export default class ReactGantt extends React.PureComponent {
     }, () => {
       const { startX, proption } = this.state
       const transform = `translate( ${startX * -1 / proption}px, 0)`;
-      sm.update({ ...this.state, transform })
+      styleUpdateMap.update({ ...this.state, transform })
     });
   };
-  calcWidth = (time, proption) => {
+  calcWidth = (time) => {
     const { xAxisWidth } = this.props
+    const { proption } = this.state
     return time /
-      dayMillisedons // N
-      * xAxisWidth // N
+      dayMillisedons 
+      * xAxisWidth 
       / proption;
   }
 
@@ -194,7 +129,7 @@ export default class ReactGantt extends React.PureComponent {
       awaitColor,
       ...rest
     } = this.props;
-    this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, sm };
+    this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, styleUpdateMap };
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     const { startX, proption } = this.state;
     const transform = `translate( ${startX * -1 / proption}, 0)`;
@@ -210,7 +145,7 @@ export default class ReactGantt extends React.PureComponent {
               ...this.state,
               calcWidth: this.calcWidth,
               transform,
-              sm
+              styleUpdateMap
             }}
           >
             <React.Fragment>

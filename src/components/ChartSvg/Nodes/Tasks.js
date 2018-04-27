@@ -7,7 +7,7 @@ import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps } from "../../constants
 
 const AvarageRect = stateConsumerProps(function AvarageRect({
   color, h, timeStartPoint, y, avarageValue,
-  sm, id, readOnly,
+  styleUpdateMap, id, readOnly,
   proption, calcWidth }) {
   id = id + '-avarage-rect'
   function calcCss({proption}) {
@@ -19,7 +19,7 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
     }
   }
 
-  const inlinecss = sm && !readOnly ? (sm.add(id, calcCss), {}) : calcCss({proption});
+  const inlinecss = styleUpdateMap && !readOnly ? (styleUpdateMap.add(id, calcCss), {}) : calcCss({proption});
   return <rect
     data-gantt-id={readOnly || id}
     fill={color}
@@ -30,7 +30,7 @@ const AvarageRect = stateConsumerProps(function AvarageRect({
 })
 
 const TaskName = stateConsumerProps(function TaskName({
-  startX, y, h, avarageValue, startTime, name, sm, id,
+  startX, y, h, avarageValue, startTime, name, styleUpdateMap, id,
   proption, calcWidth, dateTime, usedTimeWidth
 }) {
   id = id + '-task-name-text'
@@ -57,7 +57,7 @@ const TaskName = stateConsumerProps(function TaskName({
   }
 
   const inlinecss =
-    // sm ? (sm.add(id, calcCss), {}) : 
+    // styleUpdateMap ? (styleUpdateMap.add(id, calcCss), {}) : 
     calcCss({proption, startX});
   return <text
     y={y + 12} height={h / 3} {...inlinecss} >

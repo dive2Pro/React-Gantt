@@ -114,9 +114,8 @@
         > 是一个渲染了微小化的 X轴上元素的, 左右 extend 和 drag两个功能 的 Component
         同一个 svg 下, 确保位置计算时
         1.  渲染和 [3] 一样, 但是initial一次, 后期的 state change 不影响
-        2.  通过 react-dnd 添加 extend 和 drag 功能
-        3.  对外接受一个 onChange 回调 prop
-        4.  测试:
+        2.  对外接受一个 onChange 回调 prop
+        3 .  测试:
             ~~~使用 `symbol` 包裹 [3] 的组件, 可以使用该方式渲染一个微小化的 x轴,~~~
             使用 `symbol` , 会根据 width | height 的大小, 缩放整个 `use` 的 svg图形, 使其在 `width & height` 的中心位置.
             但是没有办法去限定 height 的时候修改 width 的长度, 这两个总是会取其一来计算位置. 
