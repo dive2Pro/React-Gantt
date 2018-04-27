@@ -26,7 +26,6 @@ const calcHoc = Comp => {
         h,
         // ...rest
       } = this.props
-      console.log('should not rerender')
       const { usedTime, avarageValue } = dataItem;
       const awaitStart = dateToMilliseconds(awaitStartTime);
       const awaitEnd = dateToMilliseconds(usedTime.startTime);

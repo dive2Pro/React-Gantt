@@ -13,19 +13,17 @@ const AvarageRect = valueStaticProps(function AvarageRect({
   function calcCss({proption}) {
     const x = calcWidth(timeStartPoint, proption)
     const width = calcWidth(avarageValue, proption) + 'px';
-    return {
-      x,
-      width
-    }
+    return `
+      x:${x};
+      width:${width};
+    `
   }
-  console.log('reader')
-  const inlinecss = styleUpdateMap && !readOnly ? (styleUpdateMap.add(id, calcCss), {}) : calcCss({proption});
+  styleUpdateMap.add(id, calcCss)
   return <rect
     data-gantt-id={readOnly || id}
     fill={color}
     y={y + h / 3}
     height={h / 4}
-    {...inlinecss}
   />
 })
 
@@ -50,17 +48,14 @@ const TaskName = valueStaticProps(function TaskName({
 
     const textPlusTransform = `translate(${textTranslatex + x}px, 0)`
 
-    return {
-      transform: textPlusTransform
-    }
+    return `
+      transform: ${textPlusTransform};
+    `
   }
-
-  const inlinecss =
-    styleUpdateMap ? (styleUpdateMap.add(id, calcCss), {}) : 
-    calcCss({proption, startX});
+  styleUpdateMap.add(id, calcCss)
   return <text
     data-gantt-id={id}
-    y={y + 12} height={h / 3} {...inlinecss} >
+    y={y + 12} height={h / 3} >
       {name}
     </text>
 })

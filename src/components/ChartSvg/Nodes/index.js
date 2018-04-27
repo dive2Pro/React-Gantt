@@ -8,6 +8,16 @@ import Tasks from "./Tasks";
 import {partialLeft} from './util'
 
 export default class Nodes extends React.Component {
+  constructor(props) {
+    super(props)
+    
+    console.log(props.readOnly , ' = readOnly  constructor')
+
+  }
+
+  componentDidMount() {
+    console.log(this.props.readOnly , ' = readOnly componentDidMount')
+  }
   render() {
     const { readOnly } = this.props;
     return (
@@ -22,10 +32,6 @@ export default class Nodes extends React.Component {
           renderHoverComponent = readOnly
           ? DEFAULT_EMPTYELEMENT
           : renderHoverComponent;
-
-          // renderHoverComponent = Object.values(Types).reduce((p,v) => {
-            
-          // }, {})
           for (let i = 0, length = data.length; i < length; i++) {
             const dataItem = data[i];
             const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
@@ -46,11 +52,12 @@ export default class Nodes extends React.Component {
               />
             );
           }
-          // transform = readOnly ? "" : transform; // No
+          const transform = readOnly ? "" : null; // No
           
           return (
             <g id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
             data-gantt-id={readOnly || NodesGId}
+            transform={transform}
             >{ary}</g>
           );
         }}

@@ -8,12 +8,12 @@ const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption,
     const timeWidth = calcTimeDelta(time, dateTime)
     const startX = calcWidth(timeWidth, proption);
     
-    return {
-      cx: startX + r,
-    }
+    return `
+      cx: ${startX + r};
+    `
   }
   const id =  parentId + '' + time
-  const inlinecss = styleUpdateMap && readOnly ? (styleUpdateMap.add(id, calcCss), {}) : calcCss({proption});
+  styleUpdateMap.add(id, calcCss)
   
   return <ellipse
     data-gantt-id={ readOnly || id}
@@ -21,7 +21,6 @@ const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption,
     rx={r}
     ry={r}
     cy={r + y}
-    {...inlinecss}
   />
 }
 )
@@ -37,7 +36,7 @@ const HightLightPoint = ({
   parentId,
   readOnly,
 }) => {
-
+  console.log(' hightlightpoint')
   const { time, onClick, getHighLightProps = () => ({}) } = data;
   function innerGetProps() {
     const { className = " ", ...rest } = getHighLightProps(data);

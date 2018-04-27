@@ -18,10 +18,10 @@ const ColumnLine = ({ h, i }) =>
       styleUpdateMap
     } }) => {
       const id = HelpRectColumnPrefix + '-' + i
-      function calcCss({ helpRectWidth }) {
-        return {
-          x: helpRectWidth * i
-        }
+      function calcCss({ helpRectWidth }, id) {
+        return `
+          x: ${helpRectWidth * i}
+        `
       }
       styleUpdateMap.add(id, calcCss)
       return <rect
@@ -63,16 +63,12 @@ class HelpRects extends React.Component {
               />
             );
           }
-      console.log('--help')
-          
           return (
             <GanttValueStaticContext.Consumer>
               {({ props: { styleUpdateMap } }) => {
                 const id = 'help-rect-container'
-                function calcCss({ transform }) {
-                  return {
-                    transform
-                  }
+                function calcCss({ transform }, id) {
+                  return `transform:${transform}`
                 }
                 styleUpdateMap.add(id, calcCss)
                 return <g

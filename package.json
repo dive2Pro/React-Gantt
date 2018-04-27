@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "dependencies": {
     "antd": "latest",
+    "fastdom": "^1.0.8",
     "moment": "2.22.1",
     "prop-types": "^15.6.1",
     "react": "16.3.2",
