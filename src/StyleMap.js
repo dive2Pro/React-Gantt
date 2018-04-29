@@ -1,11 +1,18 @@
 import {
     NodesGId,
-    HelpRectRowId
+    HelpRectRowId,
+    dayMillisedons 
 } from "./components/constants";
 import fastdom from 'fastdom'
 import { throttle } from 'lodash'
 function generateId(id) {
     return `#gantt-xaxis [data-gantt-id="${id}"]`
+}
+
+function NodesTransform({ transform }) {
+    return `
+        transform:${transform};
+    `
 }
 class StyleMap {
     addToOnce = false
@@ -18,6 +25,10 @@ class StyleMap {
         document.head.appendChild(el)
         // this.update = throttle(this.update, 16, true);
         this.onceSelector = new Map();
+        const onceEl = document.createElement('style')
+        onceEl.type = 'text/css'
+        this.onceEl = onceEl
+        document.head.appendChild(this.onceEl)
     }
 
     setEl(el) {
@@ -37,42 +48,62 @@ class StyleMap {
     addArray(ids, updater) {
         this.arraySelector.push([ids, updater])
     }
-
+   
     update(args) {
         // 修改 
+        const calcWidth = proption => (time) => {
+            const { xAxisWidth } = args
+            return time /
+              dayMillisedons 
+              * xAxisWidth 
+              / proption;
+        }
         let style = []
-        // TODO 删除 - readOnly 的 id
+        style.push(
+            ` [data-gantt-id=${NodesGId}]{${NodesTransform(args)}}`
+        )
         const callback = ([fn, id], key) => {
-            const returned = fn(args, id);
+            const returned = fn({...args, calcWidth: calcWidth(args.proption)}, id);
             style.push(`${key}{
                 ${returned}
             }`)
         }
         this.selector.forEach(callback)
         if (this.onceSelector.size) {
-            this.onceSelector.forEach(callback)
+            // console.log(this.onceSelector.size)
+            const onceStyle = []
+            this.onceSelector.forEach(function([fn, id], key) {
+                const returned = fn({
+                    calcWidth: calcWidth(1),
+                    proption: 1,
+                    startX: 0,
+                    transform: null
+                }, id)
+                onceStyle.push(`${key}{
+                    ${returned}
+                }`)
+            })
+            this.setStyle(this.onceEl, onceStyle.join(' '))
             this.onceSelector.clear();
         }
         if (!this.el) {
 
             return
         }
-        this.setStyle(style.join(' '))
+        this.setStyle(this.el, style.join(' '))
     }
 
-    setStyle(style) {
+    setStyle(el, style) {
         // window.requestAnimationFrame(() => {
         fastdom.measure(() => {
             const beforeHTML = this.el.innerHTML
             fastdom.mutate(() => {
-                this.el.innerHTML = `
+                el.innerHTML = `
                 ${style}
               `
-
             });
         });
         // })
-
     }
 }
 
@@ -82,11 +113,6 @@ export const styleUpdateMap = new StyleMap()
 styleUpdateMap.add(HelpRectRowId, function ({ totalWidth }) {
     return `
         width: ${totalWidth}px;
-    `
-})
-styleUpdateMap.add(NodesGId, function ({ transform }) {
-    return `
-        transform:${transform};
     `
 })
 

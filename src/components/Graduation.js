@@ -4,7 +4,9 @@ import { HalfHours } from "./constants";
 const Graduation = ({
   xAxisWidth,
   leftWidth,
-  helpRectWidth
+  helpRectWidth,
+  startX,
+  proption
 }) => {
   // 每一格子的宽度
   const width = helpRectWidth;
@@ -14,12 +16,11 @@ const Graduation = ({
   const fontSize = 12;
   const strWidth = (HalfHours[0].length - 1) * fontSize;
   const children = HalfHours
-    // .filter(filterOdd)
     .map((str, i) => {
       // 内容
       // 计算偏移
       props = {
-        x: leftWidth + i * width - strWidth / 4,
+        x: leftWidth + i * width - strWidth / 4 - startX / proption,
         key: str,
         children: str,
         y: h,

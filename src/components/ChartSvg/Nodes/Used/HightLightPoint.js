@@ -3,11 +3,10 @@ import { callAll, calcTimeDelta } from "../util";
 import { Types, DEFAULT_EMPTYELEMENT, valueStaticProps } from "../../../constants";
 
 
-const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, calcWidth, parentId, readOnly, dateTime, styleUpdateMap }) {
-  function calcCss({proption}) {
+const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, parentId, readOnly, dateTime, styleUpdateMap }) {
+  function calcCss({proption, calcWidth}) {
     const timeWidth = calcTimeDelta(time, dateTime)
     const startX = calcWidth(timeWidth, proption);
-    
     return `
       cx: ${startX + r};
     `
@@ -36,7 +35,6 @@ const HightLightPoint = ({
   parentId,
   readOnly,
 }) => {
-  console.log(' hightlightpoint')
   const { time, onClick, getHighLightProps = () => ({}) } = data;
   function innerGetProps() {
     const { className = " ", ...rest } = getHighLightProps(data);

@@ -2,15 +2,15 @@ import React from "react";
 import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
-import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps , valueStaticProps } from "../../constants";
+import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps, valueStaticProps } from "../../constants";
 
 
 const AvarageRect = valueStaticProps(function AvarageRect({
   color, h, timeStartPoint, y, avarageValue,
-  styleUpdateMap, id, readOnly,
-  proption, calcWidth }) {
+  styleUpdateMap, id,
+  proption }) {
   id = id + '-avarage-rect'
-  function calcCss({proption}) {
+  function calcCss({ proption, calcWidth }) {
     const x = calcWidth(timeStartPoint, proption)
     const width = calcWidth(avarageValue, proption) + 'px';
     return `
@@ -20,7 +20,7 @@ const AvarageRect = valueStaticProps(function AvarageRect({
   }
   styleUpdateMap.add(id, calcCss)
   return <rect
-    data-gantt-id={readOnly || id}
+    data-gantt-id={id}
     fill={color}
     y={y + h / 3}
     height={h / 4}
@@ -29,10 +29,10 @@ const AvarageRect = valueStaticProps(function AvarageRect({
 
 const TaskName = valueStaticProps(function TaskName({
   startX, y, h, avarageValue, startTime, name, styleUpdateMap, id,
-  proption, calcWidth, dateTime, usedTimeWidth
+  proption, dateTime, usedTimeWidth
 }) {
   id = id + '-task-name-text'
-  function calcCss({proption, startX}, key) {
+  function calcCss({ proption, startX, calcWidth }, key) {
     const x = calcWidth(startTime)
     let textTranslatex = 0
     const left = startX / proption
@@ -56,8 +56,8 @@ const TaskName = valueStaticProps(function TaskName({
   return <text
     data-gantt-id={id}
     y={y + 12} height={h / 3} >
-      {name}
-    </text>
+    {name}
+  </text>
 })
 
 class TaskItems extends React.PureComponent {
@@ -108,18 +108,7 @@ class TaskItems extends React.PureComponent {
     return (
       <React.Fragment>
         {HoverContainer}
-        <Await
-          readOnly={readOnly}
-          timeStartPoint={timeStartPoint}
-          color={awaitColor}
-          fontSize={fontSize}
-          height={usedH}
-          y={usedY}
-          dataItem={dataItem}
-          AwaitHoverContainer={AwaitHoverContainer}
-          awaitStart={awaitStart}
-          awaitEnd={awaitEnd}
-        />
+       
       </React.Fragment>
     );
   }

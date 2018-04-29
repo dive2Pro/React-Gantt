@@ -386,7 +386,7 @@
     }
     ```
     
-    这两者都是为了解决某个问题而推出的, 从而使 `React` 变得越来越好, 但这两个结合的时候, 我发现了一个 `Bug`
+    这两者都是为了解决某个问题而推出的, 从而使 `React` 变得越来越好, ~~~但这两个结合的时候~~~, 我发现了一个 `Bug`
 
     > 这里是示例的地址 `https://codesandbox.io/s/04393o3k6w`
 
@@ -409,7 +409,7 @@
         
 
     ```
-    此时 只要 `Root` 组件更新, 同时 `OtherLogProps` 下的某个组件(不论这个组件的层级有多深)使用了 `M.Consumer`来接受状态的话, `OtherLogProps` 就会接受到新的 `props`, 从而进行一轮 `rerender`.
+    此时 只要 `Root` 组件更新, 同时 `OtherLogProps` 下的某个组件(不论这个组件的层级有多深)使用了进行了 `setState`,  ~~~`M.Consumer`来接受状态的话~~~, `OtherLogProps` 就会接受到新的 `props`, 从而进行一轮 `rerender`.
     不论这个 `OtherLogProps` 所在的层级是多么深, `LogProps` 这个节点总是会接受到 `React.forwardRef` 中的回调重新触发所传递的 props. 
     
     ### 研究它是如何做到的 [how-it-occurs]('./how-16888-occurs.md)
@@ -451,7 +451,7 @@
         1. 修改后 fps 有明显的提高, 目前的 fps 可以保持在 34 左右的样子. 不过还有进步空间, 由于 `line` 和 `text` 这两个`svg` 元素 , 好像没有办法通过 `css`修改 他们的 'inline-style' 
            ![render优化后](./images/render-middle.png)
           
-        2. TODO: 修改 上面两个元素  
+        2. 修改 上面两个元素, 用 rect 替代 line  
 # 代码重构
 1.  Slider
   - 单一原则:

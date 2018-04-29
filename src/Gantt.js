@@ -82,7 +82,14 @@ export default class ReactGantt extends React.PureComponent {
   }
 
   componentDidMount() {
-    styleUpdateMap.update(this.state)
+    this.updateStyleMap()
+  }
+
+  updateStyleMap = () => {
+      const { xAxisWidth } = this.props
+      const { startX, proption } = this.state
+      const transform = `translate( ${startX * -1 / proption}px, 0)`;
+      styleUpdateMap.update({ ...this.state, transform, dayMillisedons, xAxisWidth })
   }
 
   handleChange = args => {
@@ -107,12 +114,9 @@ export default class ReactGantt extends React.PureComponent {
           return newObj
 
         }, {})
-    }, () => {
-      const { startX, proption } = this.state
-      const transform = `translate( ${startX * -1 / proption}px, 0)`;
-      styleUpdateMap.update({ ...this.state, transform })
-    });
+    },this.updateStyleMap);
   };
+
   calcWidth = (time) => {
     const { xAxisWidth } = this.props
     const { proption } = this.state

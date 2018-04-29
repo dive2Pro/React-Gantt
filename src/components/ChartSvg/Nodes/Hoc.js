@@ -59,7 +59,6 @@ const calcHoc = Comp => {
         }
         HightLightContainers[p.time] = Container
       })
-
       const Consumer = readOnly ? GanttValueStaticContext.Consumer : GanttStateContext.Consumer;
       return (
         <Consumer>
@@ -70,17 +69,11 @@ const calcHoc = Comp => {
             } = readOnly ? value.props : value;
 
             const timeStartPoint = calcTimeDelta(usedTime.startTime, dateTime); 
-
             const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); 
-
-
             const color =
               avarageValue > timeWidth ? ontimeColors : timeoutColors; 
-
             return (
-              <g
-                fontSize={fontSize}
-              >
+              <g>
                 <Comp
                   dataItem={dataItem}
                   y={y}                  

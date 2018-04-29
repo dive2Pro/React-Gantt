@@ -6,17 +6,11 @@ import { GanttContext,
  } from "../../constants";
 import Tasks from "./Tasks";
 import {partialLeft} from './util'
-
+import {styleUpdateMap} from '../../../StyleMap'
 export default class Nodes extends React.Component {
   constructor(props) {
     super(props)
-    
-    console.log(props.readOnly , ' = readOnly  constructor')
-
-  }
-
-  componentDidMount() {
-    console.log(this.props.readOnly , ' = readOnly componentDidMount')
+    styleUpdateMap.toggleOnce()
   }
   render() {
     const { readOnly } = this.props;
@@ -24,7 +18,7 @@ export default class Nodes extends React.Component {
       <GanttContext.Consumer>
         {({ data, lineHeight: h, xAxisWidth,
         renderHoverComponent,
-         slideHeight, ...rest }) => {
+        slideHeight, ...rest }) => {
           const ary = [];
           const dataLength = data.length;
           const height = readOnly ? slideHeight / dataLength : h;
@@ -46,7 +40,6 @@ export default class Nodes extends React.Component {
                 dataItem={dataItem}
                 awaitStartTime={awaitStartTime}
                 readOnly={readOnly}
-                fontSize={fontSize}
                 renderHoverComponent={renderHoverComponent}
                 {...rest}
               />
@@ -55,7 +48,9 @@ export default class Nodes extends React.Component {
           const transform = readOnly ? "" : null; // No
           
           return (
-            <g id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
+            <g 
+            fontSize={fontSize}
+            id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
             data-gantt-id={readOnly || NodesGId}
             transform={transform}
             >{ary}</g>

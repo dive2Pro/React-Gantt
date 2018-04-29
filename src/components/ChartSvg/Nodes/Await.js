@@ -64,10 +64,10 @@ const AwaitView = valueStaticProps(function AwaitView({
     `
   }
   // styleUpdateMap.addArray([leftLineId, rightLineId, lineId, textId])
-      styleUpdateMap.add(leftLineId, calcCss)
-styleUpdateMap.add(rightLineId, calcCss)
-styleUpdateMap.add(lineId, calcCss)
-styleUpdateMap.add(textId, calcCss), {}
+  styleUpdateMap.add(leftLineId, calcCss)
+  styleUpdateMap.add(rightLineId, calcCss)
+  styleUpdateMap.add(lineId, calcCss)
+  styleUpdateMap.add(textId, calcCss)
   return <g>
     <rect
       strokeWidth="2"
