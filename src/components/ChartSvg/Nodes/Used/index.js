@@ -6,15 +6,16 @@ const UserRect = valueStaticProps(function UserRect({ timeWidth, timeStartPoint,
   styleUpdateMap, parentId, x, width, readOnly, ...rectProps }) {
   const id =  parentId + '-userrect-' + timeStartPoint
   function calcCss({proption, calcWidth}) {
+    console.log(calcWidth(timeStartPoint), '----', calcWidth(timeStartPoint) , ' --- ', proption)
     return `
-      x: ${calcWidth(timeStartPoint, proption)};
-      width: ${calcWidth(timeWidth, proption)}px;
+      x: ${calcWidth(timeStartPoint)};
+      width: ${calcWidth(timeWidth)}px;
     `
   }
   styleUpdateMap.add(id, calcCss)
   
   return <rect
-    data-gantt-id={readOnly || id}
+    data-gantt-id={id}
     {...rectProps} />
 }
 )

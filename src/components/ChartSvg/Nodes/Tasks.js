@@ -83,7 +83,6 @@ class TaskItems extends React.PureComponent {
     } = this.props
     const usedY = y + h * 2 / 3;
     const usedH = h / 4;
-    // console.log(" taskItems");
     const { avarage, used, highlight } = color;
 
     const HoverContainer = React.cloneElement(
@@ -108,7 +107,18 @@ class TaskItems extends React.PureComponent {
     return (
       <React.Fragment>
         {HoverContainer}
-       
+        {/* <Await
+          readOnly={readOnly}
+          timeStartPoint={timeStartPoint}
+          color={awaitColor}
+          fontSize={fontSize}
+          height={usedH}
+          y={usedY}
+          dataItem={dataItem}
+          AwaitHoverContainer={AwaitHoverContainer}
+          awaitStart={awaitStart}
+          awaitEnd={awaitEnd}
+        /> */}
       </React.Fragment>
     );
   }

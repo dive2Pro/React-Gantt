@@ -6,7 +6,11 @@ import {
 import fastdom from 'fastdom'
 import { throttle } from 'lodash'
 function generateId(id) {
-    return `#gantt-xaxis [data-gantt-id="${id}"]`
+    return `#gantt-xaxis  [data-gantt-id="${id}"]`
+}
+
+function generateOnceId(id) {
+    return `#${NodesGId}readOnly [data-gantt-id="${id}"]`
 }
 
 function NodesTransform({ transform }) {
@@ -39,7 +43,7 @@ class StyleMap {
     }
     add(id, updater) {
         if (this.addToOnce) {
-            this.onceSelector.set(generateId(id), [updater, id])
+            this.onceSelector.set(generateOnceId(id), [updater, id])
         } else {
             this.selector.set(generateId(id), [updater, id])
         }
@@ -50,7 +54,6 @@ class StyleMap {
     }
    
     update(args) {
-        // 修改 
         const calcWidth = proption => (time) => {
             const { xAxisWidth } = args
             return time /
@@ -70,7 +73,6 @@ class StyleMap {
         }
         this.selector.forEach(callback)
         if (this.onceSelector.size) {
-            // console.log(this.onceSelector.size)
             const onceStyle = []
             this.onceSelector.forEach(function([fn, id], key) {
                 const returned = fn({
@@ -87,16 +89,16 @@ class StyleMap {
             this.onceSelector.clear();
         }
         if (!this.el) {
-
             return
         }
         this.setStyle(this.el, style.join(' '))
     }
 
     setStyle(el, style) {
+        console.log(style)
         // window.requestAnimationFrame(() => {
         fastdom.measure(() => {
-            const beforeHTML = this.el.innerHTML
+            const beforeHTML = el.innerHTML
             fastdom.mutate(() => {
                 el.innerHTML = `
                 ${style}
