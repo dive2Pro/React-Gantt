@@ -452,6 +452,9 @@
            ![render优化后](./images/render-middle.png)
           
         2. 修改 上面两个元素, 用 rect 替代 line  
+11. 减少 `update` 方法被调用次数
+    每一次的 `moving` 都会触发很多次的 `updateStyleMap` 函数.
+    但需要这么多次吗? 其实我们只需要保证用户的视觉没有感到`拖帧`就好
 # 代码重构
 1.  Slider
   - 单一原则:

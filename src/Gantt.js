@@ -14,7 +14,7 @@ import {
   NodesGId
 } from "./components/constants";
 import P from "prop-types";
-import {styleUpdateMap} from './StyleMap'
+import { styleUpdateMap } from './StyleMap'
 import "./style/gantt.css";
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
@@ -82,14 +82,20 @@ export default class ReactGantt extends React.PureComponent {
   }
 
   componentDidMount() {
-    this.updateStyleMap()
+    this.updateStyleMap(true)
   }
 
-  updateStyleMap = () => {
-      const { xAxisWidth } = this.props
-      const { startX, proption } = this.state
-      const transform = `translate( ${startX * -1 / proption}px, 0)`;
-      styleUpdateMap.update({ ...this.state, transform, dayMillisedons, xAxisWidth })
+  updateStyleMap = (force) => {
+    window.requestAnimationFrame(() => {
+      if (force || this.state.updating) {
+      
+      }
+    })
+    const { xAxisWidth } = this.props
+    const { startX, proption } = this.state
+    const transform = `translate( ${startX * -1 / proption}px, 0)`;
+    styleUpdateMap.update({ ...this.state, transform, dayMillisedons, xAxisWidth })
+    // this.updateStyleMap()
   }
 
   handleChange = args => {
@@ -114,18 +120,34 @@ export default class ReactGantt extends React.PureComponent {
           return newObj
 
         }, {})
-    },this.updateStyleMap);
+    }, this.updateStyleMap);
   };
 
   calcWidth = (time) => {
     const { xAxisWidth } = this.props
     const { proption } = this.state
     return time /
-      dayMillisedons 
-      * xAxisWidth 
+      dayMillisedons
+      * xAxisWidth
       / proption;
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.updating != prevState.updating) {
+      if (this.state.updating) {
+        // start updating
+        // this.updateStyleMap()
+      } else {
+        // stop updating
+      }
+    }
+  }
+
+  dragStateChange = (status) => {
+    this.setState({
+      updating: status
+    })
+  }
   render() {
     const {
       timeoutColors,
@@ -165,7 +187,9 @@ export default class ReactGantt extends React.PureComponent {
                 <ChartSvg {...this.props} {...this.state} transform={transform} />
               </div>
               <Graduation {...rest} {...this.state} transform={transform} helpRectWidth={this.state.helpRectWidth} />
-              <Slide {...rest} {...this.state} onStateChange={this.handleChange} min={this.MIN_PROPTION}>
+              <Slide {...rest} {...this.state} onStateChange={this.handleChange}
+                dragStateChange={this.dragStateChange}
+                min={this.MIN_PROPTION}>
                 <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
                   <use xlinkHref={`#${NodesGId}readOnly`} x={leftWidth} y={0} />
                 </svg>

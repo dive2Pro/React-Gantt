@@ -86,16 +86,16 @@ const DATA = [
   }
 ];
 
+let data = [];
+new Array(100).fill(0).forEach(() => {
+  data = data.concat(DATA)
+})
+
 class App extends React.PureComponent {
   render() {
     return (
       <Gantt
-        data={DATA.concat(
-          DATA.concat(DATA)
-            .concat(DATA)
-            .concat(DATA)
-            .concat(DATA)
-        )}
+        data={data}
         chartHeight={500}
         proption={0.4}
         startX={0}

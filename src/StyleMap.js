@@ -1,7 +1,7 @@
 import {
     NodesGId,
     HelpRectRowId,
-    dayMillisedons 
+    dayMillisedons
 } from "./components/constants";
 import fastdom from 'fastdom'
 import { throttle } from 'lodash'
@@ -52,21 +52,25 @@ class StyleMap {
     addArray(ids, updater) {
         this.arraySelector.push([ids, updater])
     }
-   
+
     update(args) {
+        if (!this.updating) {
+            // return;
+        }
+        this.updating = true
         const calcWidth = proption => (time) => {
             const { xAxisWidth } = args
             return time /
-              dayMillisedons 
-              * xAxisWidth 
-              / proption;
+                dayMillisedons
+                * xAxisWidth
+                / proption;
         }
         let style = []
         style.push(
             ` [data-gantt-id=${NodesGId}]{${NodesTransform(args)}}`
         )
         const callback = ([fn, id], key) => {
-            const returned = fn({...args, calcWidth: calcWidth(args.proption)}, id);
+            const returned = fn({ ...args, calcWidth: calcWidth(args.proption) }, id);
             style.push(`${key}{
                 ${returned}
             }`)
@@ -74,7 +78,7 @@ class StyleMap {
         this.selector.forEach(callback)
         if (this.onceSelector.size) {
             const onceStyle = []
-            this.onceSelector.forEach(function([fn, id], key) {
+            this.onceSelector.forEach(function ([fn, id], key) {
                 const returned = fn({
                     calcWidth: calcWidth(1),
                     proption: 1,
@@ -92,17 +96,17 @@ class StyleMap {
             return
         }
         this.setStyle(this.el, style.join(' '))
+        this.updating = false
     }
 
     setStyle(el, style) {
-        console.log(style)
         // window.requestAnimationFrame(() => {
         fastdom.measure(() => {
             const beforeHTML = el.innerHTML
             fastdom.mutate(() => {
                 el.innerHTML = `
-                ${style}
-              `
+        ${style}
+      `
             });
         });
         // })

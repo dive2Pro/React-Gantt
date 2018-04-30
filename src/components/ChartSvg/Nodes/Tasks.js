@@ -107,7 +107,7 @@ class TaskItems extends React.PureComponent {
     return (
       <React.Fragment>
         {HoverContainer}
-        {/* <Await
+         <Await
           readOnly={readOnly}
           timeStartPoint={timeStartPoint}
           color={awaitColor}
@@ -118,7 +118,7 @@ class TaskItems extends React.PureComponent {
           AwaitHoverContainer={AwaitHoverContainer}
           awaitStart={awaitStart}
           awaitEnd={awaitEnd}
-        /> */}
+        />
       </React.Fragment>
     );
   }

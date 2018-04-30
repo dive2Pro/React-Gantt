@@ -13,7 +13,7 @@ const timeWidthCache = {}
 export const calcTimeDelta = (startTime, initialTime)=> {
   
   const name = startTime + ' - ' +initialTime
-  if(timeWidthCache[name]) {
+  if(timeWidthCache[name] != undefined) {
     return timeWidthCache[name]
   }
   const result =  dateToMilliseconds(startTime) - dateToMilliseconds(initialTime)

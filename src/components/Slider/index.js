@@ -15,21 +15,42 @@ export default class Slide extends React.PureComponent {
     }
     this.props.onStateChange(changed);
   };
-
+  renderDragger = (name, handleDragging) => {
+    const h = this.getHeight()
+    const dragSvg = name === '_move' ? null : <DragSvg h={h} />;
+    return <Dragger
+      className={`_stretch ${name}`}
+      onDragging={diff => handleDragging(name, diff)}
+      dragStateChange={this.props.dragStateChange}
+    >
+     {
+       dragSvg
+     }
+    </Dragger>
+  }
+  getHeight = () => {
+    const {
+      minLineHeight,
+      data,
+     } = this.props
+    let h = minLineHeight * data.length;
+    h = h < 30 ? 30 : h;
+    return h;
+  }
   render() {
     const {
       xAxisWidth,
       leftWidth,
-      minLineHeight,
-      data,
       children,
       startX,
       proption,
-      min
+      min,
+      minLineHeight,
+      data
     } = this.props;
     let h = minLineHeight * data.length;
     h = h < 30 ? 30 : h;
-    const dragSvg = <DragSvg h={h} />;
+    h = h > 100 ? 100 : h
 
     return (
       <div className="bottom-slide">
@@ -38,6 +59,7 @@ export default class Slide extends React.PureComponent {
           min={min}
           startX={startX}
           percent={proption}
+          dragEnd
           onStateChange={this.handleDraggingStateChange}
           width={xAxisWidth}
         >
@@ -60,22 +82,15 @@ export default class Slide extends React.PureComponent {
                   }}
                 />
                 <div className="_slide" style={slideStyle}>
-                  <Dragger
-                    className="_stretch left"
-                    onDragging={diff => handleDragging("left", diff)}
-                  >
-                    {dragSvg}
-                  </Dragger>
-                  <Dragger
-                    className="_stretch _move"
-                    onDragging={diff => handleDragging("", diff)}
-                  />
-                  <Dragger
-                    className="_stretch right"
-                    onDragging={diff => handleDragging("right", diff)}
-                  >
-                    {dragSvg}
-                  </Dragger>
+                  {
+                    this.renderDragger('left', handleDragging)
+                  }
+                  {
+                    this.renderDragger('_move', handleDragging)
+                  }
+                  {
+                    this.renderDragger('right', handleDragging)
+                  }
                 </div>
                 <div style={{ flex: 1 }} />
               </div>
