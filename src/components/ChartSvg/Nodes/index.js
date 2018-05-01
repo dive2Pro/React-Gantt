@@ -17,7 +17,8 @@ export default class Nodes extends React.Component {
     return (
       <GanttContext.Consumer>
         {({ data, lineHeight: h, xAxisWidth,
-        renderHoverComponent,
+        renderHoverComponent, chartHeight,
+        sliceStart,
         slideHeight, ...rest }) => {
           const ary = [];
           const dataLength = data.length;
@@ -26,10 +27,13 @@ export default class Nodes extends React.Component {
           renderHoverComponent = readOnly
           ? DEFAULT_EMPTYELEMENT
           : renderHoverComponent;
+
+          
+
           for (let i = 0, length = data.length; i < length; i++) {
             const dataItem = data[i];
             const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
-            const y = i * height;
+            const y = (i + sliceStart) * height ;
             ary.push(
               <Tasks
                 key={i}

@@ -16,6 +16,8 @@ import {
 import P from "prop-types";
 import { styleUpdateMap } from './StyleMap'
 import "./style/gantt.css";
+import VirtualizeList from './components/VirtualizeList'
+
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
   // 当天 00:00 时的 milliseconds 值
@@ -31,7 +33,7 @@ const ColorType = P.shape({
 });
 
 
-export default class ReactGantt extends React.PureComponent {
+export default class ReactGantt extends React.Component {
   static defaultProps = {
     data: [],
     renderHoverComponent: DEFAULT_EMPTYELEMENT,
@@ -55,6 +57,7 @@ export default class ReactGantt extends React.PureComponent {
     slideHeight: 30
   };
   static Types = Types;
+
   MIN_PROPTION = 0.03;
   initialState = {
     proption: this.props.proption || 0.5,
@@ -71,7 +74,7 @@ export default class ReactGantt extends React.PureComponent {
       styleUpdateMap
     }
     this.state = { ...this.initialState, ...this.calculateWidthState(props.xAxisWidth / this.initialState.proption) };
-
+    // this.calcShowData(0)
   }
   calculateWidthState = (totalWidth) => {
     const helpRectWidth = totalWidth / columns;
@@ -82,13 +85,13 @@ export default class ReactGantt extends React.PureComponent {
   }
 
   componentDidMount() {
-    this.updateStyleMap(true)
+    // this.updateStyleMap(true)
   }
 
   updateStyleMap = (force) => {
     window.requestAnimationFrame(() => {
       if (force || this.state.updating) {
-      
+
       }
     })
     const { xAxisWidth } = this.props
@@ -148,6 +151,47 @@ export default class ReactGantt extends React.PureComponent {
       updating: status
     })
   }
+  dataSliceStart
+  dataSliceEnd
+  handleOnScroll = ({ target }) => {
+    const scrollTop = target.scrollTop
+    // this.calcShowData(scrollTop)
+  }
+
+  calcShowData = (scrollTop) => {
+    const { lineHeight, data, chartHeight } = this.props
+    const viewCounts = Math.ceil(chartHeight / lineHeight)
+    let overCounts = scrollTop / lineHeight
+    const sliceStart = overCounts <= 0 ? 0 : overCounts
+    const sliceLength = viewCounts;
+    let sliceEnd = sliceStart + sliceLength
+    if (sliceEnd >= data.length) {
+      sliceEnd = data.length
+    }
+    this.changed = false
+    if (this.dataSliceStart != sliceStart) {
+      this.dataSliceStart = sliceStart
+      this.changed = true
+    }
+    if (this.dataSliceEnd != sliceEnd) {
+      this.dataSliceEnd = sliceEnd
+      this.changed = true
+    }
+
+    if (this.changed) {
+      this.setState({ sliceStart })
+    }
+
+
+  }
+
+  getProps = () => {
+    if (this.changed) {
+      this.changed = false
+      return { ...this.props, data: this.props.data.slice(this.dataSliceStart, this.dataSliceEnd), sliceStart: this.dataSliceStart }
+    }
+    return this.props
+  }
   render() {
     const {
       timeoutColors,
@@ -158,35 +202,52 @@ export default class ReactGantt extends React.PureComponent {
     this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, styleUpdateMap };
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     const { startX, proption } = this.state;
-    const transform = `translate( ${startX * -1 / proption}, 0)`;
-    const { xAxisWidth, leftWidth } = rest;
+    const { xAxisWidth, leftWidth, data, lineHeight } = rest;
 
     return (
       <GanttContext.Provider value={
-        this.props
+        this.getProps()
       }>
         <GanttValueStaticContext.Provider value={this._staticProps}>
           <GanttStateContext.Provider
-            value={{
-              ...this.state,
-              calcWidth: this.calcWidth,
-              transform,
-              styleUpdateMap
-            }}
+            value={this.state}
           >
             <React.Fragment>
-              <div
-                className="chart-container"
-                style={{
-                  height: this.props.chartHeight,
-                  width: xAxisWidth + leftWidth,
-                  overflowY: "auto",
-                  overflowX: "hidden"
+              {/* TODO: change this to Virtualize List
+              * 1. 
+              */}
+
+              <VirtualizeList
+                itemCount={data.length}
+                renderItem={
+                  (index) => {
+                    return <span> =- {index} -=</span>
+                  }
+                }
+                ItemSize={50}
+                containerSize={this.props.chartHeight}
+                renderWrapper={({ items, handleScroll }) => {
+                  return <div
+                    className="chart-container"
+                    style={{
+                      height: this.props.chartHeight,
+                      width: xAxisWidth + leftWidth,
+                      overflowY: "auto",
+                      overflowX: "hidden",
+                      position: 'relative'
+                    }}
+                    onScroll={handleScroll}
+                  >
+                    <div style={{ height: lineHeight * rest.data.length }}>
+                      {
+                        items
+                      }
+                    </div>
+                  </div>
                 }}
-              >
-                <ChartSvg {...this.props} {...this.state} transform={transform} />
-              </div>
-              <Graduation {...rest} {...this.state} transform={transform} helpRectWidth={this.state.helpRectWidth} />
+
+              />
+              <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} />
               <Slide {...rest} {...this.state} onStateChange={this.handleChange}
                 dragStateChange={this.dragStateChange}
                 min={this.MIN_PROPTION}>

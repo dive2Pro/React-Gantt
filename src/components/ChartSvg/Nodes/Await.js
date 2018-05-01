@@ -14,27 +14,25 @@ const AwaitView = valueStaticProps(function AwaitView({
   styleUpdateMap,
   dataItem: { id }
 }) {
+  const deltaTime = awaitEnd - awaitStart;
+  const idFixed = awaitStartTime + '-' + deltaTime
   const str = "等待中";
-  const leftLineId = id + '-await-left-line-' + y
-  const rightLineId = id + '-await-right-line-' + y
-  const lineId = id + '-await-middle-line-' + y
-  const textId = id + '-await-text-id-' + y
+  const leftLineId = id + '-await-left-line-' + idFixed
+  const rightLineId = id + '-await-right-line-' + idFixed
+  const lineId = id + '-await-middle-line-' + idFixed
+  const textId = id + '-await-text-id-' + idFixed
 
   const showAwait = awaitStart < awaitEnd - 10
   if (!showAwait) {
     return ""
   }
   const halfFontWidth = fontSize * str.length / 2
-
-  function calcCss(proption, key) {
+  if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
+    return null
+  }
+  function calcCss({ calcWidth }, key) {
     let endX = calcWidth(timeStartPoint)
-    let width
-    if (Number.isNaN(awaitStartTime) || awaitStartTime === -1 || awaitStart > awaitEnd) {
-      width = 0;
-    } else {
-      width = calcWidth(awaitEnd - awaitStart);
-    }
-
+    let width = calcWidth(deltaTime);
     let h = height
     let x = endX - width
     let ty = y

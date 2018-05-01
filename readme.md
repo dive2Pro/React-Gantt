@@ -433,9 +433,6 @@
         ![优化后](./images/XAxis-after.png)
         
         **Recaculate style** , 这一部分计算太多, 导致现在的帧数平均还是在 20-30 之间, 但是整体的 js 计算 已经减少了很多, 下一步优化 `Recaculate style` 这部分.
-
-        
-
     > 考虑 2 种方式去解决: 
         1.  使用共享样式, 目前大部分的更新都是在计算 **元素的样式**, 可将每一组元素 通过 css的`[data]`选择器进行分类,提取到 `style` element 中,  从而替换 rerender 来计算 `style` 的工作
         2.  通过 `react-virualize` 的更新模式, 每次的渲染只渲染 用户可见的区域, 从而大幅减少 `rerender` 
@@ -455,6 +452,17 @@
 11. 减少 `update` 方法被调用次数
     每一次的 `moving` 都会触发很多次的 `updateStyleMap` 函数.
     但需要这么多次吗? 其实我们只需要保证用户的视觉没有感到`拖帧`就好
+12. 当 `data` 很长时, 即使使用了共享样式, 在每一次 `style element` 重新 patch 时, `browser` 都需要去计算每个 `layout` 的样式位置, 这部分工作量会随着 `data` 的大小而变化.
+    所以 需要使用第二种 `virtualize` 来进行控制.
+    不渲染不需要的组件, 只将用户 `视口` 内的组件进行渲染, `视口` 可以由已经定义的 `chartHeight` 得到, `lineheight` 则负责计算 有多少 `rows` 的 `data` 需要 渲染
+    TODO: 
+        1. Graduation 的上下滑动需要同步 ChartX
+        2. 计算得出的 要渲染的  `data`, 需要将 该 data 的样式计算 添加到 `styleMap` 中, 并根据当前的 `proption` 和 `startX` 初始化.
+        3. 移除 `styleMap` 中 不在 `视口` 中的 但之前渲染过的 样式 
+            - 将  `stateLess Component` 替换为 `PureComponent`, 在 `componentWillUnmount` 中进行删除 
+    思路:
+        1. 学习 基于 `react-virtualize` 的 [`vue-virtualize`](https://zhuanlan.zhihu.com/p/34380557).
+        2. 学习 `react-tiny-virtualize-list` 
 # 代码重构
 1.  Slider
   - 单一原则:

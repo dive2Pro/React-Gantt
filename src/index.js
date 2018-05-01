@@ -87,8 +87,10 @@ const DATA = [
 ];
 
 let data = [];
-new Array(100).fill(0).forEach(() => {
-  data = data.concat(DATA)
+new Array(50).fill(0).forEach((_, i) => {
+  data = data.concat(
+    DATA.map( d => ({...d, id : i + ' / ' + d.id}))
+  )
 })
 
 class App extends React.PureComponent {

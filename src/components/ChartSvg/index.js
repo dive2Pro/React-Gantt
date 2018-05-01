@@ -8,7 +8,7 @@ class Chart extends React.Component {
   render() {
     const { leftWidth, xAxisWidth, lineHeight, data } = this.props;
     return (
-      <svg width={leftWidth + xAxisWidth} height={lineHeight * data.length}>
+      <svg width={leftWidth + xAxisWidth}>
         <YAxisSvg {...this.props} />
         <XAxisSvg {...this.props} />
       </svg>

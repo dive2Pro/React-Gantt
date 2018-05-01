@@ -8,7 +8,7 @@ export default class XAxisSvg extends React.PureComponent {
     return (
       <svg x={leftWidth} id={`gantt-xaxis${readOnly ? '-readOnly' : ''}`}>
         <HelpRects/>
-        <defs>{React.createElement(Nodes, { readOnly: true })}</defs>
+        {/* <defs>{React.createElement(Nodes, { readOnly: true })}</defs> */}
         {React.createElement(Nodes)}
       </svg>
     );

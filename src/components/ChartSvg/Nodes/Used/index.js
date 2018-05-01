@@ -3,10 +3,10 @@ import HightLightPoint from "./HightLightPoint";
 import { valueStaticProps } from '../../../constants'
 
 const UserRect = valueStaticProps(function UserRect({ timeWidth, timeStartPoint,
-  styleUpdateMap, parentId, x, width, readOnly, ...rectProps }) {
+  styleUpdateMap, parentId, x, width, readOnly,data, ...rectProps }) {
   const id =  parentId + '-userrect-' + timeStartPoint
   function calcCss({proption, calcWidth}) {
-    console.log(calcWidth(timeStartPoint), '----', calcWidth(timeStartPoint) , ' --- ', proption)
+    // console.log(calcWidth(timeStartPoint), '----', calcWidth(timeStartPoint) , ' --- ', proption)
     return `
       x: ${calcWidth(timeStartPoint)};
       width: ${calcWidth(timeWidth)}px;
