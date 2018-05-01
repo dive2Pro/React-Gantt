@@ -463,6 +463,8 @@
     思路:
         1. 学习 基于 `react-virtualize` 的 [`vue-virtualize`](https://zhuanlan.zhihu.com/p/34380557).
         2. 学习 `react-tiny-virtualize-list` 
+    实现:
+
 # 代码重构
 1.  Slider
   - 单一原则:
@@ -471,3 +473,14 @@
 2.  XAxis
   - 抽取组件     
 3.  Graduation
+
+4. 基于 `VirtualizeList` 实现列表的绘制, 需要将之前 的组件重构.
+  - Nodes:
+     现在不再在 `Nodes` 中去遍历计算每一个组件的的位置. 在 `renderItem` 中可以拿到 `style` 属性. 通过它就可以知道当前的 `top` 的位置.
+  - HelpRects
+    绘制时的 `RowLine`和 `ColumnLine` 的情况不同
+    1. `ColumnLine` 是固定的, 只对 `proption` 反馈
+    2. `RowLine` 不再根据 `data.length` 来定条数, 而是移到 `renderItem` 中去绘制, 它的宽度也只对 `proption` 反应
+  - Graduation
+    在`renderWrapper` 中额外渲染一个 `<defs/>`, 拿到的 `items` 通过 `React.children` 和 `React.cloneElement` 来传入 `readOnly` prop, 渲染不同高度的 `Task`
+       

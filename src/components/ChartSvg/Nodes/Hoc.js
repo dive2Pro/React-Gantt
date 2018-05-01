@@ -21,10 +21,10 @@ const calcHoc = Comp => {
         fontSize,
         timeoutColors,
         ontimeColors,
-        awaitColor, renderHoverComponent,
+        awaitColor,
+        renderHoverComponent,
         y,
-        h,
-        // ...rest
+        lineHeight: h,
       } = this.props
       const { usedTime, avarageValue } = dataItem;
       const awaitStart = dateToMilliseconds(awaitStartTime);

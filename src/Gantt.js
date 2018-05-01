@@ -17,7 +17,7 @@ import P from "prop-types";
 import { styleUpdateMap } from './StyleMap'
 import "./style/gantt.css";
 import VirtualizeList from './components/VirtualizeList'
-
+import Task from './components/ChartSvg/Nodes/Tasks'
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
   // 当天 00:00 时的 milliseconds 值
@@ -184,7 +184,43 @@ export default class ReactGantt extends React.Component {
 
 
   }
+  renderItem = (i, { offset, size }) => {
+    const { lineHeight, fontSize = 12, renderHoverComponent,
+      xAxisWidth,
+      data, leftWidth,
+    } = this.props
+    const dataItem = data[i]
+    const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
 
+    return <Task {...this.props} dataItem={dataItem}
+      y={offset}
+      key={i}
+      lineHeight={size}
+      fontSize={12} awaitStartTime={awaitStartTime} />
+  }
+  renderWrapper = ({ items, handleScroll }) => {
+    const { lineHeight, data, xAxisWidth, leftWidth, chartHeight } = this.props
+    const readOnly = false
+    return <div
+      className="chart-container"
+      style={{
+        height: chartHeight,
+        width: xAxisWidth + leftWidth,
+        overflowY: "auto",
+        overflowX: "hidden",
+        position: 'relative'
+      }}
+      onScroll={handleScroll}
+    >
+      <svg
+        id="#gantt-xaxis" style={{ height: lineHeight * data.length, width: xAxisWidth }}>
+        <g
+          fontSize={12}
+          id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
+          data-gantt-id={NodesGId}
+        >{items}</g>             </svg>
+    </div>
+  }
   getProps = () => {
     if (this.changed) {
       this.changed = false
@@ -194,57 +230,32 @@ export default class ReactGantt extends React.Component {
   }
   render() {
     const {
-      timeoutColors,
-      ontimeColors,
-      awaitColor,
       ...rest
     } = this.props;
     this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, styleUpdateMap };
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     const { startX, proption } = this.state;
     const { xAxisWidth, leftWidth, data, lineHeight } = rest;
-
     return (
       <GanttContext.Provider value={
         this.getProps()
       }>
         <GanttValueStaticContext.Provider value={this._staticProps}>
           <GanttStateContext.Provider
-            value={this.state}
+            value={{ ...this.state, calcWidth: this.calcWidth }}
           >
             <React.Fragment>
-              {/* TODO: change this to Virtualize List
-              * 1. 
+              {/* change this to Virtualize List 
               */}
 
               <VirtualizeList
                 itemCount={data.length}
                 renderItem={
-                  (index) => {
-                    return <span> =- {index} -=</span>
-                  }
+                  this.renderItem
                 }
                 ItemSize={50}
                 containerSize={this.props.chartHeight}
-                renderWrapper={({ items, handleScroll }) => {
-                  return <div
-                    className="chart-container"
-                    style={{
-                      height: this.props.chartHeight,
-                      width: xAxisWidth + leftWidth,
-                      overflowY: "auto",
-                      overflowX: "hidden",
-                      position: 'relative'
-                    }}
-                    onScroll={handleScroll}
-                  >
-                    <div style={{ height: lineHeight * rest.data.length }}>
-                      {
-                        items
-                      }
-                    </div>
-                  </div>
-                }}
+                renderWrapper={this.renderWrapper}
 
               />
               <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} />

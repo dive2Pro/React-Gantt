@@ -158,19 +158,18 @@ export default class VirtualizeList extends React.PureComponent {
 
     handleScroll = ({ target }) => {
         const { scrollTop } = target
-        console.log(scrollTop, ' = top')
-        debugger
         this.setState({
             offset: scrollTop
         })
     }
 
     getStyle = index => {
-        const { offset } = this._positionManager.getDatumForIndex(index)
+        const { offset, size } = this._positionManager.getDatumForIndex(index)
 
         return {
             position: 'absolute',
             offset,
+            size
         }
     }
 
