@@ -1,5 +1,5 @@
 import React from "react";
-import { HalfHours } from "./constants";
+import { HalfHours } from "../constants";
 
 const Graduation = ({
   xAxisWidth,

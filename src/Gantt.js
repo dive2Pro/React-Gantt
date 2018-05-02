@@ -66,6 +66,7 @@ export default class ReactGantt extends React.Component {
     proption: this.props.proption || 0.5,
     startX: this.props.startX == undefined ? 200 : this.props.startX,
     dateTime: getDayMilliseconds(this.props.date),
+    styleUpdateMap
   };
 
   constructor(props) {
@@ -127,12 +128,11 @@ export default class ReactGantt extends React.Component {
           return newObj
 
         }, {})
-    });
+    }, this.updateStyleMap);
   };
 
-  calcWidth = (time) => {
+  calcWidth = (time, proption = this.state.proption) => {
     const { xAxisWidth } = this.props
-    const { proption } = this.state
     return time /
       dayMillisedons
       * xAxisWidth
@@ -140,7 +140,6 @@ export default class ReactGantt extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this, this.updateStyleMap()
   }
 
   dragStateChange = (status) => {
@@ -165,7 +164,7 @@ export default class ReactGantt extends React.Component {
   }
 
   renderWrapper = ({ items, handleScroll, totalHeight, offset }) => {
-    const { lineHeight, data, xAxisWidth, leftWidth, chartHeight } = this.props
+    const { lineHeight, data, xAxisWidth, leftWidth, chartHeight , slideHeight} = this.props
     const readOnly = false
     const { proption } = this.state
     return <div
@@ -185,7 +184,16 @@ export default class ReactGantt extends React.Component {
           style={{ width: '100%', height: '100%' }}>
           <g
             id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
-            >
+          >
+            <defs>
+              <g id="_def">
+                {
+                  React.Children.map(items, (item, i) => React.cloneElement(item, { readOnly: true, i, count: items.length,
+                    totalHeight: slideHeight
+                  }))
+                }
+              </g>
+            </defs>
             <HelpRects height={chartHeight}
               offset={offset}
               leftWidth={leftWidth}
@@ -207,6 +215,7 @@ export default class ReactGantt extends React.Component {
   }
   render() {
     const {
+      slideHeight,      
       ...rest
     } = this.props;
     this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, styleUpdateMap };
@@ -231,12 +240,20 @@ export default class ReactGantt extends React.Component {
                 containerSize={this.props.chartHeight}
                 renderWrapper={this.renderWrapper}
               />
-              <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} />
-              <Slide {...rest} {...this.state} onStateChange={this.handleChange}
+              <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} h={50}/>
+              <Slide onStateChange={this.handleChange}
                 dragStateChange={this.dragStateChange}
-                min={this.MIN_PROPTION}>
-                <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
-                  <use xlinkHref={`#${NodesGId}readOnly`} x={leftWidth} y={0} />
+                min={this.MIN_PROPTION}
+                width={xAxisWidth} 
+                proption={proption}
+                leftWidth={leftWidth}
+                startX={startX}
+                h={slideHeight}
+                >
+                <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}
+
+                >
+                  <use xlinkHref={`#_def`} x={leftWidth} y={0} />
                 </svg>
               </Slide>
             </React.Fragment>
@@ -276,5 +293,6 @@ ReactGantt.propTypes = {
   chartHeight: StringOrNumberType,
   minLineHeight: StringOrNumberType,
   proption: StringOrNumberType,
-  startX: StringOrNumberType
+  startX: StringOrNumberType,
+  slideHeight: StringOrNumberType
 };

@@ -3,9 +3,11 @@ import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
 import { YAxisView } from './YAxis'
-import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps,
+import {
+  DEFAULT_EMPTYELEMENT, Types, stateConsumerProps,
   NodesGId,
-  valueStaticProps, lineProps, RowRectId } from "../../constants";
+  valueStaticProps, lineProps, RowRectId
+} from "../../constants";
 import { styleUpdateMap } from '../../../StyleMap'
 
 
@@ -19,7 +21,9 @@ const AvarageRect = valueStaticProps(class AvarageRect extends React.PureCompone
     let {
       color, h, timeStartPoint, y, avarageValue,
       styleUpdateMap, id,
-      proption } = this.props
+      proption, readOnly,
+      calcWidth
+    } = this.props
     id = id + '-avarage-rect'
     function calcCss({ proption, calcWidth }) {
       const x = calcWidth(timeStartPoint, proption)
@@ -29,12 +33,21 @@ const AvarageRect = valueStaticProps(class AvarageRect extends React.PureCompone
       width:${width};
     `
     }
-    this.unregister = styleUpdateMap.add(id, calcCss)
+    if (!readOnly) {
+      this.unregister = styleUpdateMap.add(id, calcCss)
+    }
+    let inlineCss = readOnly ?
+      {
+        x: calcWidth(timeStartPoint, 1),
+        width: calcWidth(avarageValue, 1)
+      }
+      : {}
     return <rect
-      data-gantt-id={id}
+      data-gantt-id={readOnly ||  id}
       fill={color}
       y={y + h / 3}
       height={h / 4}
+      {...inlineCss}
     />
   }
 })
@@ -95,7 +108,6 @@ class RowRect extends React.PureComponent {
 
 class TaskItems extends React.PureComponent {
   componentDidMount() {
-    // console.log('-----')
     styleUpdateMap.update()
   }
   render() {
@@ -117,12 +129,40 @@ class TaskItems extends React.PureComponent {
       HightLightContainers,
       readOnly,
       index,
-      width
+      width,
+      leftWidth
     } = this.props
     const usedY = y + h * 2 / 3;
     const usedH = h / 4;
     const { avarage, used, highlight } = color;
 
+    if (readOnly) {
+      // 只返回 AvarageRect 和 Used 这两个缩小后的元素
+      return <svg
+        id="gantt-xaxis" x={leftWidth}
+      >
+        <g
+          data-gantt-id={readOnly || NodesGId}
+        >
+          <AvarageRect readOnly={readOnly} id={dataItem.id} timeStartPoint={timeStartPoint}
+            y={y}
+            avarageValue={avarageValue}
+            h={h}
+            color={avarage} />
+          <Used
+            readOnly={readOnly}
+            timeWidth={usedTimeWidth}
+            timeStartPoint={timeStartPoint}
+            dataItem={dataItem}
+            highlightColor={highlight}
+            color={used}
+            y={usedY}
+            height={usedH}
+            HightLightContainers={HightLightContainers}
+          />
+        </g>
+      </svg>
+    }
     const HoverContainer = React.cloneElement(
       TaskHoverContainer,
       null,
@@ -144,22 +184,24 @@ class TaskItems extends React.PureComponent {
     );
     return (
       <g>
-        <YAxisView
+        {readOnly || <YAxisView
           h={h}
           leftWidth={100}
           name={dataItem.YAxis}
           y={y}
         />
+        }
         <svg
-          id="gantt-xaxis" x={100}
+          id="gantt-xaxis" x={leftWidth}
         >
           <g
-          data-gantt-id={NodesGId}
+            data-gantt-id={readOnly || NodesGId}
           >
-            <RowRect
+            {readOnly || <RowRect
               h={h}
               y={y}
               width={width} />
+            }
             {HoverContainer}
             <Await
               readOnly={readOnly}

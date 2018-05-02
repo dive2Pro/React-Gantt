@@ -25,7 +25,11 @@ const calcHoc = Comp => {
         renderHoverComponent,
         y,
         lineHeight: h,
-        width
+        width,
+        leftWidth,
+        i,
+        count,
+        slideHeight
       } = this.props
       const { usedTime, avarageValue } = dataItem;
       const awaitStart = dateToMilliseconds(awaitStartTime);
@@ -72,14 +76,15 @@ const calcHoc = Comp => {
             const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); 
             const color =
               avarageValue > timeWidth ? ontimeColors : timeoutColors; 
+              let th = readOnly ? slideHeight / count : h
             return (
               <g>
                 <Comp
                   dataItem={dataItem}
-                  y={y}                  
+                  y={readOnly ? i * th : y}                  
                   awaitColor={awaitColor}
                   color={color}
-                  h={h}
+                  h={th}
                   awaitStartTime={awaitStartTime}
                   awaitStart={awaitStart}
                   awaitEnd={awaitEnd}
@@ -92,6 +97,7 @@ const calcHoc = Comp => {
                   HightLightContainers={HightLightContainers}
                   readOnly={readOnly}
                   width={width}
+                  leftWidth={readOnly ? 0 : leftWidth}
                 />
               </g>
             );

@@ -9,8 +9,8 @@ const UserRect = valueStaticProps(class UserRect extends React.PureComponent {
     }
   }
   render() {
-    const { timeWidth, timeStartPoint,
-      styleUpdateMap, parentId, x, width, readOnly, data, ...rectProps } = this.props
+    const { timeWidth, timeStartPoint, 
+      styleUpdateMap, parentId, x, width, readOnly, data,calcWidth, ...rectProps } = this.props
     const id = parentId + '-userrect-' + timeStartPoint
     function calcCss({ proption, calcWidth }) {
       return `
@@ -18,10 +18,18 @@ const UserRect = valueStaticProps(class UserRect extends React.PureComponent {
       width: ${calcWidth(timeWidth)}px;
     `
     }
-    this.unregister = styleUpdateMap.add(id, calcCss)
-
+    if (!readOnly) {
+      this.unregister = styleUpdateMap.add(id, calcCss)
+    }
+    let inlineCss = readOnly ? 
+    {
+      x: calcWidth(timeStartPoint, 1),
+      width: calcWidth(timeWidth, 1)
+    }
+    : {}
     return <rect
-      data-gantt-id={id}
+      data-gantt-id={readOnly || id}
+      {...inlineCss}
       {...rectProps} />
   }
 }
@@ -36,7 +44,7 @@ const UsedView = ({ color, dataItem: { highlightPoints, id }, highlightColor, ..
         fill={color}
         {...rectProps}
       />
-      {(highlightPoints || []).map((p, i) => {
+      { !rectProps.readOnly && (highlightPoints || []).map((p, i) => {
         return <HightLightPoint
           parentId={id}
           Container={HightLightContainers[p.time]}

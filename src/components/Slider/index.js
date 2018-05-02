@@ -32,26 +32,23 @@ export default class Slide extends React.PureComponent {
     const {
       minLineHeight,
       data,
+      h,
      } = this.props
-    let h = minLineHeight * data.length;
-    h = h < 30 ? 30 : h;
+    // let h = minLineHeight * data.length;
+    // h = h < 30 ? 30 : h;
     return h;
   }
   render() {
     const {
-      xAxisWidth,
+      width,
       leftWidth,
       children,
       startX,
       proption,
       min,
       minLineHeight,
-      data
+      h
     } = this.props;
-    let h = minLineHeight * data.length;
-    h = h < 30 ? 30 : h;
-    h = h > 100 ? 100 : h
-
     return (
       <div className="bottom-slide">
         {children}
@@ -61,17 +58,17 @@ export default class Slide extends React.PureComponent {
           percent={proption}
           dragEnd
           onStateChange={this.handleDraggingStateChange}
-          width={xAxisWidth}
+          width={width}
         >
           {({ percent, startPercent, handleDragging }) => {
             const slideStyle = {
-              width: xAxisWidth * proption
+              width: width * proption
             };
             return (
               <div
                 className="_slide-container"
                 style={{
-                  width: xAxisWidth,
+                  width: width,
                   left: leftWidth,
                   height: h
                 }}
