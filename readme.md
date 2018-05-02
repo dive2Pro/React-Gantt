@@ -16,9 +16,6 @@
 2. 目的
     绘制一副反应每日任务(24HR)
 3. 组成
-
-                  Title
-    
         任务名 
           Y         图表    X 轴
           轴     
@@ -29,11 +26,10 @@
     2.  漫游器 控制左右和 缩放比例
     3.  节点事件 (hover  | click)
     4.  标识节点中特殊事件 
+    5.  virtualize 渲染, 数据量再大, 性能依然保持
 5. 如何实现
 
-    1.  Title
-        正常的 DOM 节点,固定的高度
-    2.  Y 轴
+    1.  Y 轴
         展现任务名
         1. 特殊点:
             1. 固定位置, 不会随图表的左右滑动而改变自己的位置
@@ -70,7 +66,7 @@
                 );
                 };
             ```
-    3.  X 轴 (时间轴)
+    2.  X 轴 (时间轴)
         > 发散思维, 提取共同点 (见: 编码实现)
         1.  时间轴,  将 24 小时展现为 48列 小rect & 任务数列
             <rect x="" y="" width={rectWidth} height={rectHeight} />
@@ -110,7 +106,7 @@
             
             1.  hover 事件 , onMouseEnter, onMouseLeave
             2.  click 事件 , onClick
-    4.  漫游器
+    3.  漫游器
         > 是一个渲染了微小化的 X轴上元素的, 左右 extend 和 drag两个功能 的 Component
         同一个 svg 下, 确保位置计算时
         1.  渲染和 [3] 一样, 但是initial一次, 后期的 state change 不影响

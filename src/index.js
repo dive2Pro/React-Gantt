@@ -87,43 +87,46 @@ const DATA = [
 ];
 
 let data = [];
-new Array(1000).fill(0).forEach((_, i) => {
+new Array(5000).fill(0).forEach((_, i) => {
   data = data.concat(
-    DATA.map( d => ({...d, id : i + ' / ' + d.id}))
+    DATA.map(d => ({ ...d, id: i + ' / ' + d.id }))
   )
 })
 
 class App extends React.PureComponent {
   render() {
     return (
-      <Gantt
-        data={data}
-        chartHeight={500}
-        proption={0.4}
-        startX={0}
-        date={"2018-4-21"}
-        renderHoverComponent={(type, dataItem, ...rest) => {
-          switch (type) {
-            case Gantt.Types.HIGHLIGHT:
-              return (
-                <Popover
-                  content={<div>{dataItem.content}</div>}
-                  title="Title"
-                  trigger="click"
-                />
-              );
-            case Gantt.Types.TASK:
-              return (
-                <Popover
-                  content={<div>{dataItem.name}</div>}
-                  title="Title"
-                  trigger="hover"
-                />
-              );
-            default:
-          }
-        }}
-      />
+      <div>
+        <h1 style={{textAlign:'center', width: 1250}}> Gantt </h1>
+        <Gantt
+          data={data}
+          chartHeight={500}
+          proption={0.4}
+          startX={0}
+          date={"2018-4-21"}
+          renderHoverComponent={(type, dataItem, ...rest) => {
+            switch (type) {
+              case Gantt.Types.HIGHLIGHT:
+                return (
+                  <Popover
+                    content={<div>{dataItem.content}</div>}
+                    title="Title"
+                    trigger="click"
+                  />
+                );
+              case Gantt.Types.TASK:
+                return (
+                  <Popover
+                    content={<div>{dataItem.name}</div>}
+                    title="Title"
+                    trigger="hover"
+                  />
+                );
+              default:
+            }
+          }}
+        />
+      </div>
     );
   }
 }
