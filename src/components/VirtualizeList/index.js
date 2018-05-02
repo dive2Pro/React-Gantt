@@ -63,7 +63,7 @@ class PositionManager {
     getLastMeasuredDatum = () => {
         return this.dataIndexCache[this.lastMeasuredIndex] ? this.dataIndexCache[this.lastMeasuredIndex] : {
             offset: 0,
-            size: this.estimatedItemSize
+            size: 0
         }
     }
 
@@ -203,7 +203,6 @@ export default class VirtualizeList extends React.PureComponent {
                 handleScroll: this.handleScroll,
                 items,
                 totalHeight: this._positionManager.getTotal(),
-                offset
             })
         }
         return <div onScroll={this.handleScroll}>

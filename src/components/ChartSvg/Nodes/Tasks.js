@@ -2,8 +2,11 @@ import React from "react";
 import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
-import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps, valueStaticProps, lineProps, RowRectId } from "../../constants";
-import {styleUpdateMap} from '../../../StyleMap'
+import { YAxisView } from './YAxis'
+import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps,
+  NodesGId,
+  valueStaticProps, lineProps, RowRectId } from "../../constants";
+import { styleUpdateMap } from '../../../StyleMap'
 
 
 const AvarageRect = valueStaticProps(class AvarageRect extends React.PureComponent {
@@ -140,31 +143,40 @@ class TaskItems extends React.PureComponent {
       </g>
     );
     return (
-      <React.Fragment>
-        <RowRect
+      <g>
+        <YAxisView
           h={h}
+          leftWidth={100}
+          name={dataItem.YAxis}
           y={y}
-          width={width} />
-        {HoverContainer}
-        <Await
-          readOnly={readOnly}
-          timeStartPoint={timeStartPoint}
-          color={awaitColor}
-          fontSize={fontSize}
-          height={usedH}
-          y={usedY}
-          dataItem={dataItem}
-          AwaitHoverContainer={AwaitHoverContainer}
-          awaitStart={awaitStart}
-          awaitEnd={awaitEnd}
         />
-      </React.Fragment>
+        <svg
+          id="gantt-xaxis" x={100}
+        >
+          <g
+          data-gantt-id={NodesGId}
+          >
+            <RowRect
+              h={h}
+              y={y}
+              width={width} />
+            {HoverContainer}
+            <Await
+              readOnly={readOnly}
+              timeStartPoint={timeStartPoint}
+              color={awaitColor}
+              fontSize={fontSize}
+              height={usedH}
+              y={usedY}
+              dataItem={dataItem}
+              AwaitHoverContainer={AwaitHoverContainer}
+              awaitStart={awaitStart}
+              awaitEnd={awaitEnd}
+            />
+          </g>
+        </svg>
+      </g>
     );
   }
 }
-
-
-/**
- *
- */
 export default calcHoc(TaskItems);

@@ -1,7 +1,6 @@
 import React from "react";
 import Slide from "./components/Slider";
 import Graduation from "./components/Graduation";
-import ChartSvg from "./components/ChartSvg";
 import {
   moment,
   GanttStateContext,
@@ -142,14 +141,6 @@ export default class ReactGantt extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     this, this.updateStyleMap()
-    if (this.state.updating != prevState.updating) {
-      if (this.state.updating) {
-        // start updating
-        // this.updateStyleMap()
-      } else {
-        // stop updating
-      }
-    }
   }
 
   dragStateChange = (status) => {
@@ -172,7 +163,8 @@ export default class ReactGantt extends React.Component {
       width={xAxisWidth}
       fontSize={12} awaitStartTime={awaitStartTime} />
   }
-  renderWrapper = ({ items, handleScroll, totalHeight ,offset}) => {
+
+  renderWrapper = ({ items, handleScroll, totalHeight, offset }) => {
     const { lineHeight, data, xAxisWidth, leftWidth, chartHeight } = this.props
     const readOnly = false
     const { proption } = this.state
@@ -188,18 +180,17 @@ export default class ReactGantt extends React.Component {
       onScroll={handleScroll}
     >
       <div
-        id="gantt-xaxis" style={{ height: lineHeight * data.length, width: '100%' }}>
-        <svg style={{ width: '100%', height: '100%'}}>
+        style={{ height: lineHeight * data.length, width: '100%' }}>
+        <svg
+          style={{ width: '100%', height: '100%' }}>
           <g
-            fontSize={12}
             id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
-            data-gantt-id={NodesGId}
-          >
+            >
             <HelpRects height={chartHeight}
               offset={offset}
               leftWidth={leftWidth}
               width={xAxisWidth} />
-            <g x={leftWidth} style={{ height: lineHeight * data.length, width: '100%' }} >
+            <g>
               {items}
             </g>
           </g>
