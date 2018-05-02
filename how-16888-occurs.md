@@ -211,12 +211,10 @@ export function pushProvider(providerFiber: Fiber): void {
   现在我明白了, 我提的`issues` 应该是 `React.forwardRef`
 
 ## 总结
-
   
   现在我明白了, 我提的`issues` , 引发的问题 应该不是`React.createContext`的问题, 而是 `React.forwardRef` 中的问题, 在其的 子孙控件中`setState`, 会导致 `callback` 被触发.
-  所以: **[为什么子孙控件会导致 forwardRef() 触发 callback? 🤔🤔](https://github.com/facebook/react/pull/12690/files/e3fdd870cb8d0e1b60438f9b2955858c80063e1e)**
+  所以: **[为什么子孙控件会导致 forwardRef() 触发 callback? 🤔🤔](#why-is-occur?)**
   
-
 ## 感慨
 
   通过阅读这一部分代码, 加深了对`react`的理解, 
@@ -226,4 +224,129 @@ export function pushProvider(providerFiber: Fiber): void {
   `Provider` 和 所有的`Comsumer` 共享的是同一个对象, 所有的属性的改变是"全局"的, 结合 `React` 的更新策略, 牵一发而动全身.   
   不得不佩服`React`组员的代码水平, 还是得学习一个.
 
-  
+# Why is Occur? 
+
+## React 的 Component `setState`后更新策略是 
+
+```js
+  // 位于 : ReactFiberClassComponent : 167
+  enqueueSetState(inst, payload, callback) {
+      const fiber = ReactInstanceMap.get(inst);
+      const expirationTime = computeExpirationForFiber(fiber);
+
+      const update = createUpdate(expirationTime);
+      update.payload = payload;
+      if (callback !== undefined && callback !== null) {
+        if (__DEV__) {
+          warnOnInvalidCallback(callback, 'setState');
+        }
+        update.callback = callback;
+      }
+
+      // 目前不关注, 这个是和 fiber 的架构有关
+      enqueueUpdate(fiber, update, expirationTime);
+      // 组件开始更新
+      scheduleWork(fiber, expirationTime);
+    }
+```
+
+**scheduleWork**
+```js
+  // 位于 ReactFiberScheduler 1200
+   
+   while (node !== null) {
+      // 更新时 会遍历这一条父组件, 更新沿途组件的 `expiration` 
+      ...
+       
+      if (node.return === null) {
+        // 如果到达 HostRoot, 开始自顶向下更新 
+        if (node.tag === HostRoot) {
+          ...
+
+          if (
+            // If we're in the render phase, we don't need to schedule this root
+            // for an update, because we'll do it before we exit...
+            !isWorking ||
+            isCommitting ||
+            // ...unless this is a different root than the one we're rendering.
+            nextRoot !== root
+          ) {
+            // Add this root to the root schedule.
+            requestWork(root, expirationTime);
+          }
+         
+        }
+      }
+      node = node.return;
+    }
+
+```
+
+**requestWork** -> **performWorkOnRoot**
+
+```js
+  // 位于 `ReactSchedule` 1623
+   
+   ...
+   if (!isAsync) {
+      // Flush sync work.
+      // 每一次 `completeRoot` 之后 , `root.finishedWork` 都会被置空
+      let finishedWork = root.finishedWork
+      if (finishedWork !== null) {
+        // This root is already complete. We can commit it.
+        completeRoot(root, finishedWork, expirationTime);
+      } else {
+        root.finishedWork = null;
+        // 开始 render 一次 Root
+        finishedWork = renderRoot(root, expirationTime, false);
+        if (finishedWork !== null) {
+          // We've completed the root. Commit it.
+          completeRoot(root, finishedWork, expirationTime);
+        }
+      }
+   }
+
+  ...
+
+```
+
+** renderRoot **  -> **workLoop** -> **performUnitOfWork** -> **beginWork** 
+这里就开始进行 这一支组件的更新. 每个子组件又会对自己这一支进行更新. 但由于 没有 `state` 或者 `props` 的改变, React 并不会对组件进行更新.
+
+**但是**, 如果是`forwardRef`, 它的更新策略是这样的:
+
+```js
+function updateForwardRef(current, workInProgress) {
+    const render = workInProgress.type.render;
+    // 在这里, 它的回调会被调用, 所以这就造成了一轮 `props` 的传递
+    const nextChildren = render(
+      workInProgress.pendingProps,
+      workInProgress.ref,
+    );
+    reconcileChildren(current, workInProgress, nextChildren);
+    memoizeProps(workInProgress, nextChildren);
+    return workInProgress.child;
+}
+``` 
+
+[fix之后](https://github.com/facebook/react/pull/12690/files?utf8=%E2%9C%93&diff=split&w=1) 
+
+```js
+function updateForwardRef(current, workInProgress) {
+    const render = workInProgress.type.render;
+    const nextProps = workInProgress.pendingProps;
+     const ref = workInProgress.ref;
+     if (hasLegacyContextChanged()) {
+       // Normally we can bail out on props equality but if context has changed
+       // we don't do the bailout and we have to reuse existing props instead.
+     } else if (workInProgress.memoizedProps === nextProps) {
+       const currentRef = current !== null ? current.ref : null;
+       if (ref === currentRef) {
+         return bailoutOnAlreadyFinishedWork(current, workInProgress);
+       }
+     }
+     const nextChildren = render(nextProps, ref);
+      reconcileChildren(current, workInProgress, nextChildren);
+     memoizeProps(workInProgress, nextProps);
+}
+```
