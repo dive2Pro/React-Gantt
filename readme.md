@@ -480,6 +480,7 @@
   - HelpRects
     绘制时的 `RowLine`和 `ColumnLine` 的情况不同
     1. `ColumnLine` 是固定的, 只对 `proption` 反馈
+        并且渲染时, 不再 从 0 到 `totalHeight` 这样渲染这么长, 这会导致`composite`花费超多的资源
     2. `RowLine` 不再根据 `data.length` 来定条数, 而是移到 `renderItem` 中去绘制, 它的宽度也只对 `proption` 反应
   - Graduation
     在`renderWrapper` 中额外渲染一个 `<defs/>`, 拿到的 `items` 通过 `React.children` 和 `React.cloneElement` 来传入 `readOnly` prop, 渲染不同高度的 `Task`

@@ -16,7 +16,7 @@ const RowLine = ({ xAxisWidth, y, h }) => {
   </GanttValueStaticContext.Consumer>
 }
 
-const ColumnLine = ({ h, i, columnWidth, leftWidth}) =>
+const ColumnLine = ({ h, i, columnWidth, leftWidth, offset}) =>
   <GanttStateContext.Consumer>
     {({ proption, helpRectWidth}) => {
       const id = HelpRectColumnPrefix + '-' + i
@@ -27,8 +27,8 @@ const ColumnLine = ({ h, i, columnWidth, leftWidth}) =>
       }
       return <line
         {...lineProps}
-        y1={0}
-        y2={h}
+        y1={offset}
+        y2={h + offset}
         x1={helpRectWidth * i + leftWidth}
         x2={helpRectWidth * i + leftWidth}
         data-gantt-id={id}
@@ -62,10 +62,9 @@ class HelpRects extends React.PureComponent {
   //   return false;
   // }
   render() {
-    const { height, width, proption, leftWidth} = this.props
+    const { height, width, proption, leftWidth, offset} = this.props
     const columns = HalfHours.length
     const columnWidth = width /columns 
-    
     return (
       <GanttContext.Consumer>
         {({ lineHeight: h, data, xAxisWidth, chartHeight }) => {
@@ -77,6 +76,7 @@ class HelpRects extends React.PureComponent {
                 h={height}
                 columnWidth={columnWidth}
                 leftWidth={leftWidth}
+                offset={offset}
                 i={c}
               />
             );

@@ -22,22 +22,23 @@ function NodesTransform({ transform }) {
     `
 }
 
-const columnIds = new Array(columns).fill(0).map((_, i) => generateId(HelpRectColumnPrefix + '-' + i) )
-function ColumnWidth({helpRectWidth}) {
-      let id 
-      const style = []
-      for (let index = 0; index < columnIds.length; index++) {
-         style.push(
+const columnIds = new Array(columns).fill(0).map((_, i) => generateId(HelpRectColumnPrefix + '-' + i))
+function ColumnWidth({ helpRectWidth }) {
+    let id
+    const style = []
+    for (let index = 0; index < columnIds.length; index++) {
+        style.push(
             `${columnIds[index]} {
                x: ${helpRectWidth * index}px;
             }`
         )
-      }
-      return style.join(" ");
+    }
+    return style.join(" ");
 }
 class StyleMap {
     addToOnce = false
-    constructor() {
+    args
+    constructor(args) {
         this.selector = new Map()
         this.arraySelector = new Array()
         const el = document.createElement('style');
@@ -50,6 +51,7 @@ class StyleMap {
         onceEl.type = 'text/css'
         this.onceEl = onceEl
         document.head.appendChild(this.onceEl)
+        this.args = args
     }
 
     setEl(el) {
@@ -65,7 +67,9 @@ class StyleMap {
                 this.onceSelector.delete(generateOnceId(id))
             }
         } else {
-            this.selector.set(generateId(id), [updater, id])
+            const newId = generateId(id)
+            this.selector.set(newId, [updater, id])
+            // const returned = updater({ ...this.args, calcWidth: this.calcWidth(this.args.proption) }, id)
             return () => this.selector.delete(generateId(id))
         }
     }
@@ -73,19 +77,20 @@ class StyleMap {
     addArray(ids, updater) {
         this.arraySelector.push([ids, updater])
     }
-
-    update(args) {
+    calcWidth = proption => (time) => {
+        const { xAxisWidth } = this.args
+        return time /
+            dayMillisedons
+            * xAxisWidth
+            / proption;
+    }
+    update(args = this.args) {
+        this.args = args
         if (!this.updating) {
             // return;
         }
         this.updating = true
-        const calcWidth = proption => (time) => {
-            const { xAxisWidth } = args
-            return time /
-                dayMillisedons
-                * xAxisWidth
-                / proption;
-        }
+
         let style = []
         style.push(
             `[data-gantt-id=${NodesGId}]{${NodesTransform(args)}}`
@@ -97,9 +102,10 @@ class StyleMap {
             }
             `
         )
+
         // style.push(ColumnWidth(args));
         const callback = ([fn, id], key) => {
-            const returned = fn({ ...args, calcWidth: calcWidth(args.proption) }, id);
+            const returned = fn({ ...args, calcWidth: this.calcWidth(args.proption) }, id);
             style.push(`${key}{
                 ${returned}
             }`)
@@ -109,7 +115,7 @@ class StyleMap {
             const onceStyle = []
             this.onceSelector.forEach(function ([fn, id], key) {
                 const returned = fn({
-                    calcWidth: calcWidth(1),
+                    calcWidth: this.calcWidth(1),
                     proption: 1,
                     startX: 0,
                     transform: null
@@ -141,15 +147,22 @@ class StyleMap {
         });
         // })
     }
+
+    setArgs(args) {
+        this.args = args
+    }
+    appendStyle(el, style) {
+        el.innerHTML = el.innerHTML + style
+    }
 }
 
 
 export const styleUpdateMap = new StyleMap()
 
-styleUpdateMap.add(HelpRectRowId, function ({ totalWidth }) {
-    return `
-        width: ${totalWidth}px;
-    `
-})
+// styleUpdateMap.add(HelpRectRowId, function ({ totalWidth }) {
+//     return `
+//         width: ${totalWidth}px;
+//     `
+// })
 
 export default StyleMap

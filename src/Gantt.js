@@ -79,7 +79,9 @@ export default class ReactGantt extends React.Component {
     }
     this.state = { ...this.initialState, ...this.calculateWidthState(props.xAxisWidth / this.initialState.proption) };
     // this.calcShowData(0)
+    styleUpdateMap.setArgs(this.getStyleUpdateMapArgs())
   }
+
   calculateWidthState = (totalWidth) => {
     const helpRectWidth = totalWidth / columns;
     return {
@@ -92,16 +94,15 @@ export default class ReactGantt extends React.Component {
     this.updateStyleMap(true)
   }
 
-  updateStyleMap = (force) => {
-    window.requestAnimationFrame(() => {
-      if (force || this.state.updating) {
+  getStyleUpdateMapArgs = () => {
 
-      }
-    })
     const { xAxisWidth } = this.props
     const { startX, proption } = this.state
     const transform = `translate( ${startX * -1 / proption}px, 0)`;
-    styleUpdateMap.update({ ...this.state, transform, dayMillisedons, xAxisWidth })
+    return { ...this.state, transform, dayMillisedons, xAxisWidth }
+  }
+  updateStyleMap = (force) => {
+    styleUpdateMap.update(this.getStyleUpdateMapArgs())
     // this.updateStyleMap()
   }
 
@@ -140,7 +141,7 @@ export default class ReactGantt extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this,this.updateStyleMap()
+    this, this.updateStyleMap()
     if (this.state.updating != prevState.updating) {
       if (this.state.updating) {
         // start updating
@@ -156,7 +157,7 @@ export default class ReactGantt extends React.Component {
       updating: status
     })
   }
- 
+
   renderItem = (i, { offset, size }) => {
     const { lineHeight, fontSize = 12, renderHoverComponent,
       xAxisWidth,
@@ -171,7 +172,7 @@ export default class ReactGantt extends React.Component {
       width={xAxisWidth}
       fontSize={12} awaitStartTime={awaitStartTime} />
   }
-  renderWrapper = ({ items, handleScroll, totalHeight }) => {
+  renderWrapper = ({ items, handleScroll, totalHeight ,offset}) => {
     const { lineHeight, data, xAxisWidth, leftWidth, chartHeight } = this.props
     const readOnly = false
     const { proption } = this.state
@@ -186,22 +187,24 @@ export default class ReactGantt extends React.Component {
       }}
       onScroll={handleScroll}
     >
-      <svg
+      <div
         id="gantt-xaxis" style={{ height: lineHeight * data.length, width: '100%' }}>
-        <g
-          fontSize={12}
-          id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
-          data-gantt-id={NodesGId}
-        >
-          <HelpRects height={totalHeight}
-            leftWidth={leftWidth}
-            width={xAxisWidth} />
+        <svg style={{ width: '100%', height: '100%'}}>
+          <g
+            fontSize={12}
+            id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
+            data-gantt-id={NodesGId}
+          >
+            <HelpRects height={chartHeight}
+              offset={offset}
+              leftWidth={leftWidth}
+              width={xAxisWidth} />
             <g x={leftWidth} style={{ height: lineHeight * data.length, width: '100%' }} >
-          {items}
+              {items}
+            </g>
           </g>
-        </g>
-
-      </svg>
+        </svg>
+      </div>
     </div>
   }
   getProps = () => {

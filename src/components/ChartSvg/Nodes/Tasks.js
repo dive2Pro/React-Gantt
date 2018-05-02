@@ -3,62 +3,77 @@ import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
 import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps, valueStaticProps, lineProps, RowRectId } from "../../constants";
+import {styleUpdateMap} from '../../../StyleMap'
 
 
-
-const AvarageRect = valueStaticProps(function AvarageRect({
-  color, h, timeStartPoint, y, avarageValue,
-  styleUpdateMap, id,
-  proption }) {
-  id = id + '-avarage-rect'
-  function calcCss({ proption, calcWidth }) {
-    const x = calcWidth(timeStartPoint, proption)
-    const width = calcWidth(avarageValue, proption) + 'px';
-    return `
+const AvarageRect = valueStaticProps(class AvarageRect extends React.PureComponent {
+  componentWillUnmount() {
+    if (this.unregister) {
+      this.unregister()
+    }
+  }
+  render() {
+    let {
+      color, h, timeStartPoint, y, avarageValue,
+      styleUpdateMap, id,
+      proption } = this.props
+    id = id + '-avarage-rect'
+    function calcCss({ proption, calcWidth }) {
+      const x = calcWidth(timeStartPoint, proption)
+      const width = calcWidth(avarageValue, proption) + 'px';
+      return `
       x:${x};
       width:${width};
     `
+    }
+    this.unregister = styleUpdateMap.add(id, calcCss)
+    return <rect
+      data-gantt-id={id}
+      fill={color}
+      y={y + h / 3}
+      height={h / 4}
+    />
   }
-  styleUpdateMap.add(id, calcCss)
-  return <rect
-    data-gantt-id={id}
-    fill={color}
-    y={y + h / 3}
-    height={h / 4}
-  />
 })
 
-const TaskName = valueStaticProps(function TaskName({
-  startX, y, h, avarageValue, startTime, name, styleUpdateMap, id,
-  proption, dateTime, usedTimeWidth
-}) {
-  id = id + '-task-name-text'
-  function calcCss({ proption, startX, calcWidth }, key) {
-    const x = calcWidth(startTime)
-    let textTranslatex = 0
-    const left = startX / proption
-    if (left > x) {
-      const avarageWidth = calcWidth(avarageValue, proption);
-      const usedWidth = calcWidth(usedTimeWidth, proption);
-      const textMaxTranslatex = Math.max(avarageWidth, usedWidth)
-      textTranslatex = left - x
-      if (textTranslatex > textMaxTranslatex) {
-        textTranslatex = 0
-      }
+const TaskName = valueStaticProps(class TaskName extends React.PureComponent {
+  componentWillUnmount() {
+    if (this.unregister) {
+      this.unregister()
     }
+  }
+  render() {
+    let {
+      startX, y, h, avarageValue, startTime, name, styleUpdateMap, id,
+      proption, dateTime, usedTimeWidth
+    } = this.props
+    id = id + '-task-name-text'
+    function calcCss({ proption, startX, calcWidth }, key) {
+      const x = calcWidth(startTime)
+      let textTranslatex = 0
+      const left = startX / proption
+      if (left > x) {
+        const avarageWidth = calcWidth(avarageValue, proption);
+        const usedWidth = calcWidth(usedTimeWidth, proption);
+        const textMaxTranslatex = Math.max(avarageWidth, usedWidth)
+        textTranslatex = left - x
+        if (textTranslatex > textMaxTranslatex) {
+          textTranslatex = 0
+        }
+      }
 
-    const textPlusTransform = `translate(${textTranslatex + x}px, 0)`
-
-    return `
+      const textPlusTransform = `translate(${textTranslatex + x}px, 0)`
+      return `
       transform: ${textPlusTransform};
     `
+    }
+    this.unregister = styleUpdateMap.add(id, calcCss)
+    return <text
+      data-gantt-id={id}
+      y={y + 12} height={h / 3} >
+      {name}
+    </text>
   }
-  styleUpdateMap.add(id, calcCss)
-  return <text
-    data-gantt-id={id}
-    y={y + 12} height={h / 3} >
-    {name}
-  </text>
 })
 
 class RowRect extends React.PureComponent {
@@ -76,6 +91,10 @@ class RowRect extends React.PureComponent {
 }
 
 class TaskItems extends React.PureComponent {
+  componentDidMount() {
+    // console.log('-----')
+    styleUpdateMap.update()
+  }
   render() {
     const {
       dataItem,
@@ -122,7 +141,6 @@ class TaskItems extends React.PureComponent {
     );
     return (
       <React.Fragment>
-
         <RowRect
           h={h}
           y={y}

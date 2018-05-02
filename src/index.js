@@ -87,7 +87,7 @@ const DATA = [
 ];
 
 let data = [];
-new Array(50).fill(0).forEach((_, i) => {
+new Array(25000).fill(0).forEach((_, i) => {
   data = data.concat(
     DATA.map( d => ({...d, id : i + ' / ' + d.id}))
   )

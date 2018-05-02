@@ -3,26 +3,39 @@ import { callAll, calcTimeDelta } from "../util";
 import { Types, DEFAULT_EMPTYELEMENT, valueStaticProps } from "../../../constants";
 
 
-const Ellipse = valueStaticProps(function Ellipse({ color, r, time, y, proption, parentId, readOnly, dateTime, styleUpdateMap }) {
-  function calcCss({proption, calcWidth}) {
-    const timeWidth = calcTimeDelta(time, dateTime)
-    const startX = calcWidth(timeWidth, proption);
-    return `
+const Ellipse = valueStaticProps(class Ellipse extends React.PureComponent {
+  componentDidMount() {
+    // console.log(`Ellipse didmount`)
+  }
+  componentWillUnmount() {
+    if(this.unregister) {
+      this.unregister()
+    }
+  }
+  render() {
+    const { color, r, time, y, parentId, readOnly, dateTime, styleUpdateMap } = this.props
+
+    function calcCss({ proption, calcWidth }) {
+      const timeWidth = calcTimeDelta(time, dateTime)
+      const startX = calcWidth(timeWidth);
+      return `
       cx: ${startX + r};
     `
+    }
+    const id = parentId + '' + time
+    this.unregister = styleUpdateMap.add(id, calcCss)
+
+    return <ellipse
+      data-gantt-id={readOnly || id}
+      fill={color}
+      rx={r}
+      ry={r}
+      cy={r + y}
+    />
   }
-  const id =  parentId + '' + time
-  styleUpdateMap.add(id, calcCss)
-  
-  return <ellipse
-    data-gantt-id={ readOnly || id}
-    fill={color}
-    rx={r}
-    ry={r}
-    cy={r + y}
-  />
 }
 )
+
 
 const HightLightPoint = ({
   data,
@@ -52,7 +65,7 @@ const HightLightPoint = ({
   const children = (
     <g {...innerGetProps()} onClick={callAll(onClick)}>
       <Ellipse parentId={parentId} r={r} color={color} time={time}
-      readOnly={readOnly}
+        readOnly={readOnly}
         y={y}
       />
     </g>
