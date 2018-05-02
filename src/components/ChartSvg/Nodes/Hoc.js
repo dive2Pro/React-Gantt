@@ -66,12 +66,7 @@ const calcHoc = Comp => {
       const Consumer = readOnly ? GanttValueStaticContext.Consumer : GanttStateContext.Consumer;
       return (
         <Consumer>
-          {(value) => {
-            let {
-              dateTime, 
-              calcWidth,
-            } = readOnly ? value.props : value;
-
+          {({dateTime, calcWidth}) => {
             const timeStartPoint = calcTimeDelta(usedTime.startTime, dateTime); 
             const timeWidth = calcTimeDelta(usedTime.endTime, usedTime.startTime); 
             const color =

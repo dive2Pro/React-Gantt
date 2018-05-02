@@ -4,7 +4,6 @@ import Graduation from "./components/Graduation";
 import {
   moment,
   GanttStateContext,
-  GanttContext,
   GanttValueStaticContext,
   Types,
   DEFAULT_EMPTYELEMENT,
@@ -41,7 +40,6 @@ export default class ReactGantt extends React.Component {
     data: [],
     renderHoverComponent: DEFAULT_EMPTYELEMENT,
     timeoutColors: {
-
       used: "hsl(100, 77%, 44%)",
       avarage: "hsl(103, 77%, 53%)",
       highlight: "red"
@@ -71,17 +69,24 @@ export default class ReactGantt extends React.Component {
 
   constructor(props) {
     super(props)
-    this._staticProps = { props: { ...props, ...this.initialState } };
+    this._staticProps = this.getStaticProps(props)
     this._staticState = {
       ...this.state,
       calcWidth: this.calcWidth,
       styleUpdateMap
     }
     this.state = { ...this.initialState, ...this.calculateWidthState(props.xAxisWidth / this.initialState.proption) };
-    // this.calcShowData(0)
     styleUpdateMap.setArgs(this.getStyleUpdateMapArgs())
   }
 
+  getStaticProps = (props) => {
+    return {
+      ...props,
+      ...this.initialState,
+      calcWidth: this.calcWidth,
+      styleUpdateMap
+    }
+  }
   calculateWidthState = (totalWidth) => {
     const helpRectWidth = totalWidth / columns;
     return {
@@ -89,9 +94,12 @@ export default class ReactGantt extends React.Component {
       helpRectWidth
     }
   }
-
+  componentWillReceiveProps(nextProps) {
+    this._staticProps = this.getStaticProps(nextProps)
+    
+  }
   componentDidMount() {
-    this.updateStyleMap(true)
+    this.updateStyleMap()
   }
 
   getStyleUpdateMapArgs = () => {
@@ -101,9 +109,8 @@ export default class ReactGantt extends React.Component {
     const transform = `translate( ${startX * -1 / proption}px, 0)`;
     return { ...this.state, transform, dayMillisedons, xAxisWidth }
   }
-  updateStyleMap = (force) => {
+  updateStyleMap = () => {
     styleUpdateMap.update(this.getStyleUpdateMapArgs())
-    // this.updateStyleMap()
   }
 
   handleChange = args => {
@@ -139,15 +146,6 @@ export default class ReactGantt extends React.Component {
       / proption;
   }
 
-  componentDidUpdate(prevProps, prevState) {
-  }
-
-  dragStateChange = (status) => {
-    this.setState({
-      updating: status
-    })
-  }
-
   renderItem = (i, { offset, size }) => {
     const { lineHeight, fontSize = 12, renderHoverComponent,
       xAxisWidth,
@@ -164,7 +162,7 @@ export default class ReactGantt extends React.Component {
   }
 
   renderWrapper = ({ items, handleScroll, totalHeight, offset }) => {
-    const { lineHeight, data, xAxisWidth, leftWidth, chartHeight , slideHeight} = this.props
+    const { lineHeight, data, xAxisWidth, leftWidth, chartHeight, slideHeight } = this.props
     const readOnly = false
     const { proption } = this.state
     return <div
@@ -188,7 +186,8 @@ export default class ReactGantt extends React.Component {
             <defs>
               <g id="_def">
                 {
-                  React.Children.map(items, (item, i) => React.cloneElement(item, { readOnly: true, i, count: items.length,
+                  React.Children.map(items, (item, i) => React.cloneElement(item, {
+                    readOnly: true, i, count: items.length,
                     totalHeight: slideHeight
                   }))
                 }
@@ -213,54 +212,45 @@ export default class ReactGantt extends React.Component {
     }
     return this.props
   }
+  
   render() {
     const {
-      slideHeight,      
+      slideHeight,
       ...rest
     } = this.props;
-    this._staticProps.props = { ...this._staticProps.props, ...this.props, calcWidth: this.calcWidth, styleUpdateMap };
     // 分离两个 Provider , 一个提供 Root Props, 一个提供 Root State
     const { startX, proption } = this.state;
     const { xAxisWidth, leftWidth, data, lineHeight } = rest;
     return (
-      <GanttContext.Provider value={
-        this.getProps()
-      }>
-        <GanttValueStaticContext.Provider value={this._staticProps}>
-          <GanttStateContext.Provider
-            value={this.state}
+      <GanttValueStaticContext.Provider value={this._staticProps}>
+        <GanttStateContext.Provider
+          value={this.state}
+        >
+          <VirtualizeList
+            itemCount={data.length}
+            renderItem={
+              this.renderItem
+            }
+            ItemSize={50}
+            containerSize={this.props.chartHeight}
+            renderWrapper={this.renderWrapper}
+          />
+          <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} h={50} />
+          <Slide onStateChange={this.handleChange}
+            dragStateChange={this.dragStateChange}
+            min={this.MIN_PROPTION}
+            width={xAxisWidth}
+            proption={proption}
+            leftWidth={leftWidth}
+            startX={startX}
+            h={slideHeight}
           >
-            <React.Fragment>
-              <VirtualizeList
-                itemCount={data.length}
-                renderItem={
-                  this.renderItem
-                }
-                ItemSize={50}
-                containerSize={this.props.chartHeight}
-                renderWrapper={this.renderWrapper}
-              />
-              <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} h={50}/>
-              <Slide onStateChange={this.handleChange}
-                dragStateChange={this.dragStateChange}
-                min={this.MIN_PROPTION}
-                width={xAxisWidth} 
-                proption={proption}
-                leftWidth={leftWidth}
-                startX={startX}
-                h={slideHeight}
-                >
-                <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}
-
-                >
-                  <use xlinkHref={`#_def`} x={leftWidth} y={0} />
-                </svg>
-              </Slide>
-            </React.Fragment>
-          </GanttStateContext.Provider>
-        </GanttValueStaticContext.Provider>
-
-      </GanttContext.Provider>
+            <svg height={rest.slideHeight} width={leftWidth + xAxisWidth}>
+              <use xlinkHref={`#_def`} x={leftWidth} y={0} />
+            </svg>
+          </Slide>
+        </GanttStateContext.Provider>
+      </GanttValueStaticContext.Provider>
     );
   }
 }

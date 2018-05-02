@@ -1,6 +1,6 @@
 
 # 展示
-![show-gif](./gifs/show.gif)
+![show-gif](./gifs/show-1.gif)
 
 
 # 使用

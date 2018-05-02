@@ -4,7 +4,6 @@ import React from "react";
 export { moment };
 export const dayMillisedons = 1000 * 3600 * 24;
 
-export const GanttContext = React.createContext({});
 export const GanttStateContext = React.createContext({});
 export const GanttValueStaticContext = React.createContext({});
 
@@ -15,8 +14,7 @@ export const stateConsumerProps = (Component) => {
 
     return <Consumer>
       {
-        (value) => {
-          const state = readOnly ? value.props : value
+        (state) => {
           return <Component ref={innerRef} {...props} {...state
           }
             proption={readOnly ? 1 : state.proption}
@@ -25,9 +23,7 @@ export const stateConsumerProps = (Component) => {
       }
     </Consumer>
   }
-
   Wrapper.displayName = `StateConsumer:( ${Component.displayName || Component.name || Component} )`
-
   return Wrapper
 }
 
@@ -37,7 +33,7 @@ export const valueStaticProps = Component => {
     return <Consumer>
       {
         (value) => {
-          const { proption, ...state } = value.props
+          const { proption, ...state } = value
           return <Component ref={innerRef} {...props} {...state}
             proption={props.readOnly  ? 1 : proption}
 
