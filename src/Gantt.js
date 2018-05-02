@@ -18,6 +18,10 @@ import { styleUpdateMap } from './StyleMap'
 import "./style/gantt.css";
 import VirtualizeList from './components/VirtualizeList'
 import Task from './components/ChartSvg/Nodes/Tasks'
+import HelpRects from './components/ChartSvg/HelpRects'
+
+
+
 function getDayMilliseconds(date) {
   const m = moment(date).startOf("day");
   // 当天 00:00 时的 milliseconds 值
@@ -85,7 +89,7 @@ export default class ReactGantt extends React.Component {
   }
 
   componentDidMount() {
-    // this.updateStyleMap(true)
+    this.updateStyleMap(true)
   }
 
   updateStyleMap = (force) => {
@@ -123,7 +127,7 @@ export default class ReactGantt extends React.Component {
           return newObj
 
         }, {})
-    }, this.updateStyleMap);
+    });
   };
 
   calcWidth = (time) => {
@@ -136,6 +140,7 @@ export default class ReactGantt extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    this,this.updateStyleMap()
     if (this.state.updating != prevState.updating) {
       if (this.state.updating) {
         // start updating
@@ -151,39 +156,7 @@ export default class ReactGantt extends React.Component {
       updating: status
     })
   }
-  dataSliceStart
-  dataSliceEnd
-  handleOnScroll = ({ target }) => {
-    const scrollTop = target.scrollTop
-    // this.calcShowData(scrollTop)
-  }
-
-  calcShowData = (scrollTop) => {
-    const { lineHeight, data, chartHeight } = this.props
-    const viewCounts = Math.ceil(chartHeight / lineHeight)
-    let overCounts = scrollTop / lineHeight
-    const sliceStart = overCounts <= 0 ? 0 : overCounts
-    const sliceLength = viewCounts;
-    let sliceEnd = sliceStart + sliceLength
-    if (sliceEnd >= data.length) {
-      sliceEnd = data.length
-    }
-    this.changed = false
-    if (this.dataSliceStart != sliceStart) {
-      this.dataSliceStart = sliceStart
-      this.changed = true
-    }
-    if (this.dataSliceEnd != sliceEnd) {
-      this.dataSliceEnd = sliceEnd
-      this.changed = true
-    }
-
-    if (this.changed) {
-      this.setState({ sliceStart })
-    }
-
-
-  }
+ 
   renderItem = (i, { offset, size }) => {
     const { lineHeight, fontSize = 12, renderHoverComponent,
       xAxisWidth,
@@ -191,16 +164,17 @@ export default class ReactGantt extends React.Component {
     } = this.props
     const dataItem = data[i]
     const awaitStartTime = i > 0 ? data[i - 1].usedTime.endTime : -1;
-
     return <Task {...this.props} dataItem={dataItem}
       y={offset}
       key={i}
       lineHeight={size}
+      width={xAxisWidth}
       fontSize={12} awaitStartTime={awaitStartTime} />
   }
-  renderWrapper = ({ items, handleScroll }) => {
+  renderWrapper = ({ items, handleScroll, totalHeight }) => {
     const { lineHeight, data, xAxisWidth, leftWidth, chartHeight } = this.props
     const readOnly = false
+    const { proption } = this.state
     return <div
       className="chart-container"
       style={{
@@ -213,12 +187,21 @@ export default class ReactGantt extends React.Component {
       onScroll={handleScroll}
     >
       <svg
-        id="#gantt-xaxis" style={{ height: lineHeight * data.length, width: xAxisWidth }}>
+        id="gantt-xaxis" style={{ height: lineHeight * data.length, width: '100%' }}>
         <g
           fontSize={12}
           id={`${NodesGId}${readOnly ? String("readOnly") : ""}`}
           data-gantt-id={NodesGId}
-        >{items}</g>             </svg>
+        >
+          <HelpRects height={totalHeight}
+            leftWidth={leftWidth}
+            width={xAxisWidth} />
+            <g x={leftWidth} style={{ height: lineHeight * data.length, width: '100%' }} >
+          {items}
+          </g>
+        </g>
+
+      </svg>
     </div>
   }
   getProps = () => {
@@ -242,12 +225,9 @@ export default class ReactGantt extends React.Component {
       }>
         <GanttValueStaticContext.Provider value={this._staticProps}>
           <GanttStateContext.Provider
-            value={{ ...this.state, calcWidth: this.calcWidth }}
+            value={this.state}
           >
             <React.Fragment>
-              {/* change this to Virtualize List 
-              */}
-
               <VirtualizeList
                 itemCount={data.length}
                 renderItem={
@@ -256,7 +236,6 @@ export default class ReactGantt extends React.Component {
                 ItemSize={50}
                 containerSize={this.props.chartHeight}
                 renderWrapper={this.renderWrapper}
-
               />
               <Graduation {...rest} {...this.state} helpRectWidth={this.state.helpRectWidth} />
               <Slide {...rest} {...this.state} onStateChange={this.handleChange}

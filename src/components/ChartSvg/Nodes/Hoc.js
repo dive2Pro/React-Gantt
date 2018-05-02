@@ -25,6 +25,7 @@ const calcHoc = Comp => {
         renderHoverComponent,
         y,
         lineHeight: h,
+        width
       } = this.props
       const { usedTime, avarageValue } = dataItem;
       const awaitStart = dateToMilliseconds(awaitStartTime);
@@ -46,7 +47,6 @@ const calcHoc = Comp => {
       if (!React.isValidElement(AwaitHoverContainer)) {
         AwaitHoverContainer = <DEFAULT_EMPTYELEMENT />;
       }
-
       const HightLightContainers = {};
       (dataItem.highlightPoints || []).map((p, i) => {
         let Container = renderHoverComponent.apply(null, [
@@ -91,6 +91,7 @@ const calcHoc = Comp => {
                   AwaitHoverContainer={AwaitHoverContainer}
                   HightLightContainers={HightLightContainers}
                   readOnly={readOnly}
+                  width={width}
                 />
               </g>
             );

@@ -15,6 +15,7 @@ const Graduation = ({
   let props;
   const fontSize = 12;
   const strWidth = (HalfHours[0].length - 1) * fontSize;
+  
   const children = HalfHours
     .map((str, i) => {
       // 内容

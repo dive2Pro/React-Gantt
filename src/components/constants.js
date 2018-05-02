@@ -52,6 +52,19 @@ export const valueStaticProps = Component => {
   return Wrapper
 }
 
+export const specifyPropsWithStateConsumer = props => {
+  return stateConsumerProps(class SpecifyPropsWithStateConsumer extends React.Component {
+    shouldComponentUpdate(nextProps) {
+      return props.some( p => {
+        return this.props[p] != nextProps[p]
+      })
+    }
+    render() {
+      return this.props.children(this.props)
+    }
+  })
+}
+
 export const columns = 48;
 
 export const Types = {
@@ -119,3 +132,4 @@ export const HelpRectRowId = `${prefix}help-rect-row-id`
 export const HelpRectColumnPrefix = `${prefix}help-rect-column`
 
 export const NodesGId = `${prefix}-nodes-g-id-`
+export const RowRectId = `${prefix}-row-rect`

@@ -1,7 +1,10 @@
 import {
     NodesGId,
     HelpRectRowId,
-    dayMillisedons
+    dayMillisedons,
+    RowRectId,
+    HelpRectColumnPrefix,
+    columns
 } from "./components/constants";
 import fastdom from 'fastdom'
 import { throttle } from 'lodash'
@@ -17,6 +20,20 @@ function NodesTransform({ transform }) {
     return `
         transform:${transform};
     `
+}
+
+const columnIds = new Array(columns).fill(0).map((_, i) => generateId(HelpRectColumnPrefix + '-' + i) )
+function ColumnWidth({helpRectWidth}) {
+      let id 
+      const style = []
+      for (let index = 0; index < columnIds.length; index++) {
+         style.push(
+            `${columnIds[index]} {
+               x: ${helpRectWidth * index}px;
+            }`
+        )
+      }
+      return style.join(" ");
 }
 class StyleMap {
     addToOnce = false
@@ -44,8 +61,12 @@ class StyleMap {
     add(id, updater) {
         if (this.addToOnce) {
             this.onceSelector.set(generateOnceId(id), [updater, id])
+            return () => {
+                this.onceSelector.delete(generateOnceId(id))
+            }
         } else {
             this.selector.set(generateId(id), [updater, id])
+            return () => this.selector.delete(generateId(id))
         }
     }
 
@@ -67,8 +88,16 @@ class StyleMap {
         }
         let style = []
         style.push(
-            ` [data-gantt-id=${NodesGId}]{${NodesTransform(args)}}`
+            `[data-gantt-id=${NodesGId}]{${NodesTransform(args)}}`
         )
+        style.push(
+            `${generateId(RowRectId)} 
+            {
+                width: ${args.xAxisWidth / args.proption}px;
+            }
+            `
+        )
+        // style.push(ColumnWidth(args));
         const callback = ([fn, id], key) => {
             const returned = fn({ ...args, calcWidth: calcWidth(args.proption) }, id);
             style.push(`${key}{
@@ -105,8 +134,9 @@ class StyleMap {
             const beforeHTML = el.innerHTML
             fastdom.mutate(() => {
                 el.innerHTML = `
-        ${style}
-      `
+            ${style}
+          `
+
             });
         });
         // })

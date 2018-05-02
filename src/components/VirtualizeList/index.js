@@ -202,6 +202,7 @@ export default class VirtualizeList extends React.PureComponent {
             return renderWrapper({
                 handleScroll: this.handleScroll,
                 items,
+                totalHeight: this._positionManager.getTotal()
             })
         }
         return <div onScroll={this.handleScroll}>

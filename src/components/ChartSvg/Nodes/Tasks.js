@@ -2,7 +2,8 @@ import React from "react";
 import calcHoc from "./Hoc";
 import Used from "./Used";
 import Await from "./Await";
-import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps, valueStaticProps } from "../../constants";
+import { DEFAULT_EMPTYELEMENT, Types, stateConsumerProps, valueStaticProps, lineProps, RowRectId } from "../../constants";
+
 
 
 const AvarageRect = valueStaticProps(function AvarageRect({
@@ -60,6 +61,20 @@ const TaskName = valueStaticProps(function TaskName({
   </text>
 })
 
+class RowRect extends React.PureComponent {
+  render() {
+    const { h, y, width } = this.props
+
+    return <rect
+      x={0}
+      y={y}
+      height={h}
+      data-gantt-id={RowRectId}
+      {...lineProps}
+    />
+  }
+}
+
 class TaskItems extends React.PureComponent {
   render() {
     const {
@@ -79,7 +94,8 @@ class TaskItems extends React.PureComponent {
       AwaitHoverContainer,
       HightLightContainers,
       readOnly,
-      index
+      index,
+      width
     } = this.props
     const usedY = y + h * 2 / 3;
     const usedH = h / 4;
@@ -106,8 +122,13 @@ class TaskItems extends React.PureComponent {
     );
     return (
       <React.Fragment>
+
+        <RowRect
+          h={h}
+          y={y}
+          width={width} />
         {HoverContainer}
-         <Await
+        <Await
           readOnly={readOnly}
           timeStartPoint={timeStartPoint}
           color={awaitColor}
